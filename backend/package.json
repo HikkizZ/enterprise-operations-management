@@ -30,7 +30,7 @@
   "bugs": {
     "url": "https://github.com/HikkizZ/dev-lab/issues"
   },
-  "homepage": "https://github.com/HikkizZ/dev-lab/fullstack/complete-apps/enterprise-operations-management/backend#readme",
+  "homepage": "https://github.com/HikkizZ/dev-lab/tree/main/fullstack/complete-apps/enterprise-operations-management/backend#readme",
   "dependencies": {
     "bcrypt": "^6.0.0",
     "cookie-parser": "^1.4.7",

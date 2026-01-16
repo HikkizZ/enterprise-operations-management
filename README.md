@@ -1,14 +1,14 @@
-# GPS – Business Process Management System
+# Enterprise Operations Management System
 
-GPS (Gestión de Procesos de Software) Business Process Management System es un sistema full-stack de gestión empresarial diseñado para centralizar y digitalizar procesos internos críticos de una organización, con énfasis en recursos humanos, gestión de maquinaria, inventario y registro de operaciones.
+Enterprise Operations Management System (EOMS) es un sistema full-stack de gestión empresarial diseñado para centralizar y digitalizar procesos internos críticos de una organización, con énfasis en recursos humanos, gestión de maquinaria, inventario y registro de operaciones.
 
-Este proyecto forma parte del repositorio **Dev Lab** y corresponde a una reimplementación individual basada en un sistema académico desarrollado originalmente en equipo, con el objetivo de profundizar en decisiones arquitectónicas, calidad de código y buenas prácticas de ingeniería de software.
+Este proyecto forma parte del repositorio **Dev Lab** y corresponde a una reimplementación individual basada en un proyecto académico desarrollado originalmente en equipo, con el objetivo de profundizar en decisiones arquitectónicas, calidad de código y buenas prácticas de ingeniería de software.
 
 ---
 
 ## 🎯 Propósito del Sistema
 
-El objetivo principal de GPS es ofrecer una plataforma modular que permita:
+El objetivo principal del sistema es ofrecer una plataforma modular que permita:
 
 - Digitalizar procesos operativos que normalmente se gestionan de forma manual o en planillas
 - Centralizar información dispersa entre distintas áreas de la empresa

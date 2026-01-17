@@ -7,8 +7,8 @@ const isTest = configEnv.nodeEnv === 'test';
 
 /* Dynamic route for the entities according to the environment */
 const entitiesPath = isProduction
-    ? 'dist/entities/**/*.js' // production
-    : 'src/entities/**/*.ts'; // development and test
+    ? 'dist/entity/**/*.js' // production
+    : 'src/entity/**/*.ts'; // development and test
 
 export const AppDataSource = new DataSource({
     type: 'postgres',

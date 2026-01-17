@@ -35,6 +35,4 @@ passport.use(
     })   
 );
 
-export function passportJWTSetup() {
-    passport.initialize();
-}
+export const passportJWTSetup = passport.initialize();

@@ -16,23 +16,23 @@ const options: StrategyOptions = {
     secretOrKey: configEnv.auth.accessTokenSecret,
 };
 
-passport.use(
-    new JwtStrategy(options, async (jwtPayload: JwtPayload, done) => {
-        try {
-            const userRepository = AppDataSource.getRepository(User);
-            const user =  await  userRepository.findOne({
-                where: { corporateEmail: jwtPayload.corporateEmail }
-            });
+export const registerPassportJWTStrategy = () => {
+    passport.use(
+        new JwtStrategy(options, async (jwtPayload: JwtPayload, done) => {
+            try {
+                const userRepository = AppDataSource.getRepository(User);
+                const user = await userRepository.findOne({
+                    where: { corporateEmail: jwtPayload.corporateEmail }
+                });
 
-            if (!user)  return done(null, false);
+                if (!user) return done(null, false);
 
-            if (user.accountStatus !== 'Activa') return done(null, false);
+                if (user.accountStatus !== 'Activa') return done(null, false);
 
-            return done(null, user);
-        } catch (error) {
-            return done(error, false);
-        }
-    })   
-);
-
-export const passportJWTSetup = passport.initialize();
+                return done(null, user);
+            } catch (error) {
+                return done(error, false);
+            }
+        })
+    );
+}

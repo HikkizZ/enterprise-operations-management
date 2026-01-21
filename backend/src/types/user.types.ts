@@ -1,3 +1,5 @@
+import type { AccountStatus } from "../entity/user.entity.js";
+import type { User } from "../entity/user.entity.js";
 
 export const userRoles = [
   'SuperAdministrador',
@@ -13,3 +15,33 @@ export const userRoles = [
 ] as const;
 
 export type UserRole = (typeof userRoles)[number];
+
+export interface UserResponse {
+    id: string;
+    name: string;
+    corporateEmail: string;
+    role: UserRole;
+    rut: string | null;
+    accountStatus: AccountStatus;
+    createAt: Date;
+    updateAt: Date;
+}
+
+export type UserQueryParams = {
+  id?: string;
+  corporateEmail?: string;
+  rut?: string;
+  role?: UserRole;
+  name?: string;
+}
+
+export type UpdateUserData = {
+  name?: string;
+  corporateEmail?: string;
+  password?: string;
+  role?: UserRole;
+  rut?: string;
+  accountStatus?: AccountStatus;
+}
+
+export type SafeUser = Omit<User, 'password'>; 

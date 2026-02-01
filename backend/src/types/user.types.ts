@@ -1,4 +1,3 @@
-import type { AccountStatus } from "../entity/user.entity.js";
 import type { User } from "../entity/user.entity.js";
 
 export const userRoles = [
@@ -15,6 +14,10 @@ export const userRoles = [
 ] as const;
 
 export type UserRole = (typeof userRoles)[number];
+
+export const accountStatuses = ['Activa', 'Inactiva', 'Suspendida'] as const;
+
+export type AccountStatus = (typeof accountStatuses)[number];
 
 export interface UserResponse {
     id: string;

@@ -66,7 +66,7 @@ export const userQueryValidationSchema: ObjectSchema = Joi.object({
     });
 
 /* Validación del cuerpo para actualizar usuario */
-export const updateUserBodyValidation: ObjectSchema = Joi.object({
+export const UserBodyValidationSquema: ObjectSchema = Joi.object({
     name: Joi.string()
         .min(3)
         .max(100)
@@ -121,71 +121,5 @@ export const updateUserBodyValidation: ObjectSchema = Joi.object({
     .unknown(false)
     .messages({
         'object.missing': 'Se debe proporcionar al menos un campo para actualizar: name, corporateEmail, rut, password o role',
-        'object.unknown': 'Se han proporcionado campos no permitidos en el cuerpo de la solicitud',
-    });
-
-/* Validación del cuerpo para crear usuario */
-export const createUserBodyValidation: ObjectSchema = Joi.object({
-    name: Joi.string()
-        .min(3)
-        .max(100)
-        .pattern(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/)
-        .required()
-        .messages({
-            "string.base": "El nombre debe ser una cadena de texto",
-            "string.min": "El nombre debe tener al menos {#limit} caracteres",
-            "string.max": "El nombre no debe exceder los {#limit} caracteres",
-            "string.pattern.base": "El nombre solo puede contener letras y espacios",
-            "string.empty": "El nombre no puede estar vacío",
-            "any.required": "El nombre es obligatorio",
-        }),
-    corporateEmail: Joi.string()
-        .email()
-        .custom(corporateEmailDomainValidator)
-        .required()
-        .messages({
-            "string.base": "El correo corporativo debe ser una cadena de texto",
-            "string.email": "El correo corporativo debe ser un correo electrónico válido",
-            "string.empty": "El correo corporativo no puede estar vacío",
-            "any.required": "El correo corporativo es obligatorio",
-        }),
-    rut: Joi.string()
-        .custom(rutValidator)
-        .required()
-        .messages({
-            'string.base': 'El RUT debe ser una cadena de texto',
-            'string.empty': 'El RUT no puede estar vacío',
-            'any.required': 'El RUT es obligatorio',
-        })
-        .when('role', {
-            is: 'SuperAdministrador',
-            then: Joi.optional(),
-            otherwise: Joi.required()
-                .messages({
-                    'any.required': 'El RUT es obligatorio',
-                })
-        }),
-    password: Joi.string()
-        .min(8)
-        .max(16)
-        .pattern(/^[A-Za-z0-9!@#$%^&*_\-\.]+$/)
-        .required()
-        .messages({
-            "string.base": "La contraseña debe ser una cadena de texto",
-            "string.min": "La contraseña debe tener al menos {#limit} caracteres",
-            "string.max": "La contraseña no debe exceder los {#limit} caracteres",
-            "string.pattern.base": "La contraseña solo puede contener letras, números y los siguientes caracteres especiales: !@#$%^&*_-.",
-            "string.empty": "La contraseña no puede estar vacía",
-            "any.required": "La contraseña es obligatoria",
-        }),
-    role: Joi.string()
-        .valid(...userRoles)
-        .messages({
-            "any.only": "El rol especificado no es válido",
-            "string.base": "El rol debe ser una cadena de texto",
-        }),
-})
-    .unknown(false)
-    .messages({
         'object.unknown': 'Se han proporcionado campos no permitidos en el cuerpo de la solicitud',
     });

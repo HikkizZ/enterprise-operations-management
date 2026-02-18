@@ -2,13 +2,10 @@ import type { Request, Response } from "express";
 import {
     getUsersService,
     updateUserService,
-    updateOwnProfileService,
-    changeOwnPasswordService
 } from "../services/user.service.js";
 import { handleSuccess, handleErrorClient, handleErrorServer } from "../handlers/responseHandlers.js";
-import { userQueryValidationSchema, updateUserBodyValidation, createUserBodyValidation } from "../validations/user.validation.js";
+import { userQueryValidationSchema, UserBodyValidationSquema } from "../validations/user.validation.js";
 import { User } from "../entity/user.entity.js";
-import { AppDataSource } from "../config/configDB.js";
 
 /* Controlador para obtener usuarios con o sin filtros */
 export const getUsersController = async (req: Request, res: Response): Promise<Response> => {
@@ -54,7 +51,7 @@ export const updateUserController = async (req: Request, res: Response): Promise
             });
         }
 
-        const { error: bodyError, value: bodyValue } = updateUserBodyValidation.validate(req.body);
+        const { error: bodyError, value: bodyValue } = UserBodyValidationSquema.validate(req.body);
 
         if (bodyError) {
             return handleErrorClient(res, 400, 'Cuerpo de la solicitud inválido', {

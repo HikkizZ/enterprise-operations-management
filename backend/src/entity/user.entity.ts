@@ -3,8 +3,6 @@ import { accountStatuses, userRoles } from '../types/user.types.js';
 import type { AccountStatus, UserRole } from '../types/user.types.js';
 import { formatRut, cleanRut, } from 'rut-kit'
 import { Employee } from './rrhh/employee.entity.js';
-export { accountStatuses } from '../types/user.types.js';
-export type { AccountStatus } from '../types/user.types.js';
 
 @Entity('users')
 export class User {

@@ -15,6 +15,7 @@ import { EmploymentHistory } from './employmentHistory.entity.js';
 import { Leave } from './leave.entity.js';
 import { formatRut, cleanRut } from 'rut-kit';
 import { EmployeeProfile } from './employeeProfile.entity.js';
+import { makeDateTransformer } from '../../helpers/transformerDate.helper.js';
 
 @Entity('employees')
 export class Employee {
@@ -45,30 +46,7 @@ export class Employee {
     @Column({
         type: 'date',
         nullable: true,
-        transformer: {
-            to: (value: Date | string | null): string | null => {
-                if (!value) return null;
-                // Si ya es un string en formato 'YYYY-MM-DD', devolverlo tal cual
-                if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
-                // Si es un objeto Date, formatearlo a 'YYYY-MM-DD'
-                const date = typeof value === 'string' ? new Date(value) : value;
-                if (isNaN(date.getTime())) {
-                    console.error('Fecha nacimiento inválida en transoformer:', value);
-                    return null;
-                }
-                return date.toISOString().split('T')[0] || null;
-            },
-            from: (value: string | Date | null): Date | null => {
-                if (!value) return null;
-                if (typeof value === 'string') {
-                    const parts = value.split('-').map(Number);
-                    if (parts.length !== 3) return null;
-                    const [year, month, day] = parts as [number, number, number];
-                    return new Date(year, month - 1, day); // Mes es 0-indexado
-                }
-                return value;
-            }
-        }
+        transformer: makeDateTransformer('Fecha de nacimiento inválida en transformer')
     })
     birthDate!: Date | null;
 
@@ -88,30 +66,7 @@ export class Employee {
     @Column({
         type: 'date',
         nullable: false,
-        transformer: {
-            to: (value: Date | string | null): string | null => {
-                if (!value) return null;
-                // Si ya es un string en formato 'YYYY-MM-DD', devolverlo tal cual
-                if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
-                // Si es un objeto Date, formatearlo a 'YYYY-MM-DD'
-                const date = typeof value === 'string' ? new Date(value) : value;
-                if (isNaN(date.getTime())) {
-                    console.error('Fecha de ingreso inválida en transoformer:', value);
-                    return null;
-                }
-                return date.toISOString().split('T')[0] || null;
-            },
-            from: (value: string | Date | null): Date | null => {
-                if (!value) return null;
-                if (typeof value === 'string') {
-                    const parts = value.split('-').map(Number);
-                    if (parts.length !== 3) return null;
-                    const [year, month, day] = parts as [number, number, number];
-                    return new Date(year, month - 1, day); // Mes es 0-indexado
-                }
-                return value;
-            }
-        }
+        transformer: makeDateTransformer('Fecha de contratación inválida en transformer')
     })
     hireDate!: Date;
 

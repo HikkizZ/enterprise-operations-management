@@ -89,7 +89,7 @@ export async function getUsersService(query: UserQueryParams): Promise<ServiceRe
 /* Actualizar datos de usuario */
 
 /* Función auxiliar para limpiar data de actualización */
-function limpiarCamposTextoUsuario(data: UpdateUserData): UpdateUserData {
+function sanitizeUserTextFields(data: UpdateUserData): UpdateUserData {
     const out: UpdateUserData = {};
 
     if (data.name !== undefined) {
@@ -125,7 +125,7 @@ export const updateUserService = async (
             throw { status: 400, message: "El campo 'rol' no es válido. Utilice 'role' en su lugar." };
         }
 
-        const cleanedBody = limpiarCamposTextoUsuario(body);
+        const cleanedBody = sanitizeUserTextFields(body);
 
         const userRepository = AppDataSource.getRepository(User);
 
@@ -199,7 +199,7 @@ export const updateUserService = async (
     }
 };
 
-function limpiarProfile(data: { name?: string; corporateEmail?: string }) {
+function sanitizeProfile(data: { name?: string; corporateEmail?: string }) {
     const out: { name?: string; corporateEmail?: string } = {};
 
     if (data.name !== undefined) {
@@ -223,7 +223,7 @@ export const updateOwnProfileService = async (
     try {
         const userRepository = AppDataSource.getRepository(User);
         
-        const cleanedBody = limpiarProfile(body);
+        const cleanedBody = sanitizeProfile(body);
 
         const user = await userRepository.findOneBy({ id: requester.id });
         if (!user) return null;

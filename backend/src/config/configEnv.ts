@@ -28,5 +28,10 @@ export const configEnv = {
     auth: {
         accessTokenSecret: process.env.ACCESS_TOKEN_SECRET!,
         cookieKey: process.env.COOKIE_KEY!,
+    },
+
+    domains: {
+        allowedEmailDomains: process.env.ALLOWED_EMAIL_DOMAINS ? process.env.ALLOWED_EMAIL_DOMAINS.split(',').map(domain => domain.trim()) : [],
+        allowedCorporateEmailDomains: process.env.ALLOWED_CORPORATE_EMAIL_DOMAINS ? process.env.ALLOWED_CORPORATE_EMAIL_DOMAINS.split(',').map(domain => domain.trim()) : [],
     }
 };

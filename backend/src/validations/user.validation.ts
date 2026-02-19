@@ -2,8 +2,9 @@ import Joi from 'joi';
 import type { CustomHelpers, ObjectSchema } from 'joi';
 import { isValidRut } from 'rut-kit';
 import { userRoles } from '../types/user.types.js';
+import { configEnv } from '../config/configEnv.js';
 
-const allowedCorporateEmailDomains = ["gmail.com", "outlook.com", "yahoo.com", "hotmail.com", "live.com", "gmail.cl", "outlook.cl", "yahoo.cl", "hotmail.cl", "live.cl"];
+const allowedCorporateEmailDomains = configEnv.domains.allowedCorporateEmailDomains;
 
 /* Validador personalizado para dominios de correo corporativo */
 const corporateEmailDomainValidator = (value: string, helpers: CustomHelpers) => {

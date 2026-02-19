@@ -4,9 +4,9 @@ import type { StrategyOptions } from 'passport-jwt';
 import { AppDataSource } from '../config/configDB.js';
 import { User } from '../entity/user.entity.js';
 import { configEnv } from '../config/configEnv.js';
+import type { AuthTokenPayload } from '../types/user.types.js';
 
-type JwtPayload = {
-    corporateEmail: string;
+type JwtPayload = AuthTokenPayload & {
     iat?: number;
     exp?: number;
 };

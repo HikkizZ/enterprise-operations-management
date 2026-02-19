@@ -26,8 +26,16 @@ export interface UserResponse {
     role: UserRole;
     rut: string | null;
     accountStatus: AccountStatus;
-    createAt: Date;
-    updateAt: Date;
+    createdAt: Date;
+    updatedAt: Date;
+}
+
+export interface UserData {
+    name: string;
+    corporateEmail: string;
+    password: string;
+    role: UserRole;
+    rut: string | null;
 }
 
 export type UserQueryParams = {
@@ -47,4 +55,21 @@ export type UpdateUserData = {
   accountStatus?: AccountStatus;
 }
 
-export type SafeUser = Omit<User, 'password'>; 
+export type SafeUser = Omit<User, 'password'>;
+
+export interface LoginResponse {
+  token: string;
+  user: UserResponse;
+}
+
+export interface LoginData {
+  corporateEmail: string;
+  password: string;
+}
+
+export interface AuthTokenPayload {
+  name: string;
+  corporateEmail: string;
+  role: UserRole;
+  rut: string | null;
+}

@@ -3,31 +3,32 @@ import {
     getUsersService,
     updateUserService,
 } from "../services/user.service.js";
-import { handleSuccess, handleErrorClient, handleErrorServer } from "../handlers/responseHandlers.js";
-import { userQueryValidationSchema, UserBodyValidationSquema } from "../validations/user.validation.js";
+import { handleSuccess, handleErrorClient, handleErrorServer, errorStatusMap } from "../handlers/responseHandlers.js";
+import { userQuerySchema, userBodySchema } from "../validations/user.validation.js";
 import { User } from "../entity/user.entity.js";
 
 /* Controlador para obtener usuarios con o sin filtros */
 export const getUsersController = async (req: Request, res: Response): Promise<Response> => {
     try {
-        const { error, value } = userQueryValidationSchema.validate(req.query);
+        const result = userQuerySchema.safeParse(req.query);
 
-        if (error) {
+        if (!result.success) {
             return handleErrorClient(res, 400, 'Parámetros de consulta inválidos', {
-                details: error.details.map(detail => detail.message)
+                details: result.error.issues.map(i => i.message)
             });
         }
 
-        const response = await getUsersService(value);
+        const response = await getUsersService(result.data);
 
         if (!response.ok) {
-            return handleErrorClient(res, 400, 'Error al obtener usuarios', response.error);
+            const status = response.error.code ? errorStatusMap[response.error.code] : 400;
+            return handleErrorClient(res, status, response.error.message, null);
         }
 
-        const usersData = response.data ?? [];
-        const mensaje = usersData.length > 0 ? 'Usuarios obtenidos exitosamente' : 'No se encontraron usuarios con los criterios proporcionados';
+        const mensaje = response.data.length > 0 ? 'Usuarios obtenidos exitosamente' : 'No se encontraron usuarios con los criterios de búsqueda';
 
-        return handleSuccess(res, 200, mensaje, usersData);
+        return handleSuccess(res, 200, mensaje, response.data);
+
     } catch (err) {
         console.error('Error en getUsersController:', err);
         return handleErrorServer(res);
@@ -41,39 +42,33 @@ export const updateUserController = async (req: Request, res: Response): Promise
             return handleErrorClient(res, 401, 'Usuario no autenticado', null);
         }
 
-        const requester = req.user as User;
+        const queryResult = userQuerySchema.safeParse(req.query);
 
-        const { error: queryError, value: queryValue } = userQueryValidationSchema.validate(req.query);
-
-        if (queryError) {
+        if (!queryResult.success) {
             return handleErrorClient(res, 400, 'Parámetros de consulta inválidos', {
-                details: queryError.details.map(detail => detail.message)
+                details: queryResult.error.issues.map(i => i.message)
             });
         }
 
-        const { error: bodyError, value: bodyValue } = UserBodyValidationSquema.validate(req.body);
+        const bodyResult = userBodySchema.safeParse(req.body);
 
-        if (bodyError) {
+        if (!bodyResult.success) {
             return handleErrorClient(res, 400, 'Cuerpo de la solicitud inválido', {
-                details: bodyError.details.map(detail => detail.message)
+                details: bodyResult.error.issues.map(i => i.message)
             });
         }
 
-        const user = await updateUserService(queryValue, bodyValue, requester);
+        const requester = req.user as User;
+        const response = await updateUserService(queryResult.data, bodyResult.data, requester);
 
-        if (!user) {
-            return handleErrorClient(res, 404, 'Usuario no encontrado', null);
+        if (!response.ok) {
+            const status = response.error.code ? errorStatusMap[response.error.code] : 400;
+            return handleErrorClient(res, status, response.error.message, null);
         }
 
-        return handleSuccess(res, 200, 'Usuario actualizado exitosamente', user);
+        return handleSuccess(res, 200, 'Usuario actualizado exitosamente', response.data);
     } catch (err: any) {
         console.error('Error en updateUserController:', err);
-
-        /* Si el servicio lanza un errores estructurados */
-        if (err?.status && err?.message) {
-            return handleErrorClient(res, err.status, err.message, err.details);
-        }
-
         return handleErrorServer(res);
     }
 }

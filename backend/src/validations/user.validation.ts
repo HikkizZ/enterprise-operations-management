@@ -62,13 +62,6 @@ export const userBodySchema = z.object({
             message: 'Se debe proporcionar al menos un campo para actualizar: name, corporateEmail, rut, password o role',
         });
     }
-    if (data.role === 'SuperAdministrador' && !data.rut) {
-        ctx.addIssue({
-            code: 'custom',
-            path: ['rut'],
-            message: 'El RUT es obligatorio para usuarios con rol SuperAdministrador',
-        });
-    }
 });
 
 export type UserQueryInput = z.infer<typeof userQuerySchema>;

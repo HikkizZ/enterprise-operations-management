@@ -1,126 +1,75 @@
-import Joi from 'joi';
-import type { CustomHelpers, ObjectSchema } from 'joi';
-import { isValidRut } from 'rut-kit';
+import { z } from 'zod';
+import { createRutSchema } from 'rut-kit/zod';
 import { userRoles } from '../types/user.types.js';
 import { configEnv } from '../config/configEnv.js';
 
 const allowedCorporateEmailDomains = configEnv.domains.allowedCorporateEmailDomains;
 
-/* Validador personalizado para dominios de correo corporativo */
-const corporateEmailDomainValidator = (value: string, helpers: CustomHelpers) => {
+const isAllowedCorporateEmailDomain = (value: string) => {
     const domain = value.split('@')[1]?.toLowerCase();
-    if (!domain) return helpers.message({ custom: 'El correo corporativo no es válido' });
+    if (!domain) return false;
 
-    const allowed = allowedCorporateEmailDomains.includes(domain);
-    if (!allowed) return helpers.message({ custom: 'El dominio del correo corporativo no es válido' });
-
-    return value;
+    return allowedCorporateEmailDomains.includes(domain);
 }
 
-/* Validador personalizado para RUT */
-const rutValidator = (value: string, helpers: CustomHelpers) => {
-    if (!isValidRut(value)) return helpers.message({ custom: 'El RUT ingresado no es válido' });
-    return value;
-}
+const rutSchema = createRutSchema({
+    messages: {
+        required: 'El RUT es obligatorio',
+        invalidFormat: 'El RUT debe tener un formato válido',
+        invalidCheckDigit: 'El dígito verificador del RUT es incorrecto',
+    },
+    outputFormat: 'formatted',
+});
 
-/* Validación de Query para buscar usuario */
-export const userQueryValidationSchema: ObjectSchema = Joi.object({
-    id: Joi.string()
-        .uuid({ version: 'uuidv4' })
-        .messages({
-            'string.uuid': 'El ID debe ser un UUID válido',
-            'string.base': 'El ID debe ser una cadena de texto',
-        }),
-    corporateEmail: Joi.string()
-        .email()
-        .messages({
-            'string.email': 'El correo corporativo debe ser un correo electrónico válido',
-            'string.base': 'El correo corporativo debe ser una cadena de texto',
-        }),
-    name: Joi.string()
-        .min(3)
-        .max(100)
-        .pattern(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/)
-        .messages({
-            'string.base': 'El nombre debe ser una cadena de texto',
-            'string.min': 'El nombre debe tener al menos {#limit} caracteres',
-            'string.max': 'El nombre no debe exceder los {#limit} caracteres',
-            'string.pattern.base': 'El nombre solo puede contener letras y espacios',
-        }),
-    rut: Joi.string()
-        .custom(rutValidator)
-        .messages({
-            'string.base': 'El RUT debe ser una cadena de texto',
-        }),
-    role: Joi.string()
-        .valid(...userRoles)
-        .messages({
-            'any.only': 'El rol especificado no es válido',
-            'string.base': 'El rol debe ser una cadena de texto',
-        }),
-})
-    .or('id', 'corporateEmail', 'rut', 'role', 'name')
-    .unknown(false)
-    .messages({
-        'object.missing': 'Se debe proporcionar al menos un parámetro de consulta: id, corporateEmail, rut, role o name',
-        'object.unknown': 'Se han proporcionado parámetros de consulta no permitidos',
-    });
+/* Query Params para buscar usuarios */
+export const userQuerySchema = z.object({
+    id: z.uuid('El ID debe ser un UUID válido').optional(),
+    corporateEmail: z.email('El correo corporativo debe ser un correo electrónico válido').optional(),
+    name: z.string()
+        .min(3, 'El nombre debe tener al menos 3 caracteres')
+        .max(100, 'El nombre no debe exceder los 100 caracteres')
+        .regex(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/, 'El nombre solo puede contener letras y espacios')
+        .optional(),
+    rut: rutSchema.optional(),
+    role: z.enum(userRoles).optional(),
+}).refine(
+    (data) => Object.values(data).some(v => v !== undefined),
+    'Se debe proporcionar al menos un parámetro de consulta: id, corporateEmail, rut, role o name'
+);
 
-/* Validación del cuerpo para actualizar usuario */
-export const UserBodyValidationSquema: ObjectSchema = Joi.object({
-    name: Joi.string()
-        .min(3)
-        .max(100)
-        .pattern(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/)
-        .messages({
-            "string.base": "El nombre debe ser una cadena de texto",
-            "string.min": "El nombre debe tener al menos {#limit} caracteres",
-            "string.max": "El nombre no debe exceder los {#limit} caracteres",
-            "string.pattern.base": "El nombre solo puede contener letras y espacios",
-            "string.empty": "El nombre no puede estar vacío",
-        }),
-    corporateEmail: Joi.string()
-        .email()
-        .custom(corporateEmailDomainValidator)
-        .messages({
-            "string.base": "El correo corporativo debe ser una cadena de texto",
-            "string.email": "El correo corporativo debe ser un correo electrónico válido",
-        }),
-    rut: Joi.string()
-        .custom(rutValidator)
-        .messages({
-            'string.base': 'El RUT debe ser una cadena de texto',
-            'string.empty': 'El RUT no puede estar vacío',
-        })
-        .when('role', {
-            is: 'SuperAdministrador',
-            then: Joi.optional(),
-            otherwise: Joi.required()
-                .messages({
-                    'any.required': 'El RUT es obligatorio',
-                })
-        }),
-    password: Joi.string()
-        .min(8)
-        .max(16)
-        .pattern(/^[A-Za-z0-9!@#$%^&*_\-\.]+$/)
-        .messages({
-            "string.base": "La contraseña debe ser una cadena de texto",
-            "string.min": "La contraseña debe tener al menos {#limit} caracteres",
-            "string.max": "La contraseña no debe exceder los {#limit} caracteres",
-            "string.pattern.base": "La contraseña solo puede contener letras, números y los siguientes caracteres especiales: !@#$%^&*_-.",
-            "string.empty": "La contraseña no puede estar vacía",
-        }),
-    role: Joi.string()
-        .valid(...userRoles)
-        .messages({
-            "any.only": "El rol especificado no es válido",
-            "string.base": "El rol debe ser una cadena de texto",
-        }),
-})
-    .or('name', 'corporateEmail', 'rut', 'password', 'role')
-    .unknown(false)
-    .messages({
-        'object.missing': 'Se debe proporcionar al menos un campo para actualizar: name, corporateEmail, rut, password o role',
-        'object.unknown': 'Se han proporcionado campos no permitidos en el cuerpo de la solicitud',
-    });
+/* Body para actualizar usuario */
+export const userBodySchema = z.object({
+    name: z.string()
+        .min(3, 'El nombre debe tener al menos 3 caracteres')
+        .max(100, 'El nombre no debe exceder los 100 caracteres')
+        .regex(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/, 'El nombre solo puede contener letras y espacios')
+        .optional(),
+    corporateEmail: z.email('El correo corporativo debe ser un correo electrónico válido')
+        .refine(isAllowedCorporateEmailDomain, 'El dominio del correo corporativo no es válido')
+        .optional(),
+    rut: rutSchema.optional(),
+    password: z.string()
+        .min(8, 'La contraseña debe tener al menos 8 caracteres')
+        .max(16, 'La contraseña no debe exceder los 16 caracteres')
+        .regex(/^[A-Za-z0-9!@#$%^&*_\-\.]+$/, 'La contraseña solo puede contener letras, números y los siguientes caracteres especiales: !@#$%^&*_-.')
+        .optional(),
+    role: z.enum(userRoles).optional(),
+}).superRefine((data, ctx) => {
+    const hasAtLeastOne = Object.values(data).some(v => v !== undefined);
+    if (!hasAtLeastOne) {
+        ctx.addIssue({
+            code: 'custom',
+            message: 'Se debe proporcionar al menos un campo para actualizar: name, corporateEmail, rut, password o role',
+        });
+    }
+    if (data.role === 'SuperAdministrador' && !data.rut) {
+        ctx.addIssue({
+            code: 'custom',
+            path: ['rut'],
+            message: 'El RUT es obligatorio para usuarios con rol SuperAdministrador',
+        });
+    }
+});
+
+export type UserQueryInput = z.infer<typeof userQuerySchema>;
+export type UserBodyInput = z.infer<typeof userBodySchema>;

@@ -39,20 +39,20 @@ export interface UserData {
 }
 
 export type UserQueryParams = {
-  id?: string;
-  corporateEmail?: string;
-  rut?: string;
-  role?: UserRole;
-  name?: string;
+  id?: string | undefined;
+  corporateEmail?: string | undefined;
+  rut?: string | undefined;
+  role?: UserRole | undefined;
+  name?: string | undefined;
 }
 
 export type UpdateUserData = {
-  name?: string;
-  corporateEmail?: string;
-  password?: string;
-  role?: UserRole;
-  rut?: string;
-  accountStatus?: AccountStatus;
+  name?: string | undefined;
+  corporateEmail?: string | undefined;
+  password?: string | undefined;
+  role?: UserRole | undefined;
+  rut?: string | undefined;
+  accountStatus?: AccountStatus | undefined;
 }
 
 export type SafeUser = Omit<User, 'password'>;

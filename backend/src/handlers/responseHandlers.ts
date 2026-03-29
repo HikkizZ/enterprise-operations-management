@@ -1,4 +1,13 @@
 import type { Response } from 'express';
+import type { ErrorCode } from '../types/common.types.js';
+
+export const errorStatusMap: Record<ErrorCode, number> = {
+    BAD_REQUEST: 400,
+    UNAUTHORIZED: 401,
+    FORBIDDEN: 403,
+    NOT_FOUND: 404,
+    CONFLICT: 409,
+}
 
 /* Manejo estandarizado de respuestas exitosas */
 export function handleSuccess<T>(res: Response, statusCode: number, message: string, data?: T): Response {

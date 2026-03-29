@@ -39,7 +39,6 @@
     "express": "^5.2.1",
     "express-session": "^1.18.2",
     "express-validator": "^7.3.1",
-    "joi": "^18.0.2",
     "jsonwebtoken": "^9.0.3",
     "jwt-decode": "^4.0.0",
     "morgan": "^1.10.1",
@@ -51,7 +50,8 @@
     "pg": "^8.17.1",
     "reflect-metadata": "^0.2.2",
     "rut-kit": "^0.4.1",
-    "typeorm": "^0.3.28"
+    "typeorm": "^0.3.28",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",

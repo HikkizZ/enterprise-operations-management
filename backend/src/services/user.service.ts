@@ -78,7 +78,7 @@ function sanitizeUserTextFields(data: UpdateUserData): UpdateUserData {
 
 /* Actualizar datos de usuario */
 export const updateUserService = async (
-    query: {id?: string, rut?: string, corporateEmail?: string},
+    query: {id?: string | undefined, rut?: string | undefined, corporateEmail?: string | undefined},
     body: UpdateUserData,
     requester: User
     ): Promise<ServiceResponse<SafeUser>> => {
@@ -102,10 +102,10 @@ export const updateUserService = async (
             user = await userRepository.findOneBy({ corporateEmail: query.corporateEmail });
         }
 
-        if (!user) return { ok: false, error: { message: 'Usuario no encontrado' } };
+        if (!user) return { ok: false, error: { message: 'Usuario no encontrado', code: 'NOT_FOUND' } };
 
         if (user.role === 'SuperAdministrador') {
-            return { ok: false, error: { message: 'No se puede modificar un usuario con rol SuperAdministrador' } };
+            return { ok: false, error: { message: 'No se puede modificar un usuario con rol SuperAdministrador', code: 'FORBIDDEN' } };
         }
 
         /* Permisos */
@@ -117,23 +117,23 @@ export const updateUserService = async (
             const keys = Object.keys(cleanedBody);
         
             if (!cleanedBody.password || keys.length !== 1) {
-                return { ok: false, error: { message: 'No tiene permiso para modificar estos datos.' } };
+                return { ok: false, error: { message: 'No tiene permiso para modificar estos datos.', code: 'FORBIDDEN' } };
             }
         } else {
             /* Si no es el propio usuario, debe tener un rol permitido */
             if (!allowedRoles.includes(requester.role)) {
-                return { ok: false, error: { message: 'No tiene permiso para modificar este usuario.' } };
+                return { ok: false, error: { message: 'No tiene permiso para modificar este usuario.', code: 'FORBIDDEN' } };
             }
         }
 
         /* No puede cambiar su propio rol */
         if (isSelf && cleanedBody.role) {
-            return { ok: false, error: { message: 'No tiene permiso para modificar su propio rol.' } };
+            return { ok: false, error: { message: 'No tiene permiso para modificar su propio rol.', code: 'FORBIDDEN' } };
         }
 
         /* No se puede cambiar a SuperAdministrador */
         if (cleanedBody.role === 'SuperAdministrador') {
-            return { ok: false, error: { message: 'No se puede cambiar un usuario a SuperAdministrador.' } };
+            return { ok: false, error: { message: 'No se puede cambiar un usuario a SuperAdministrador.', code: 'FORBIDDEN' } };
         }
 
         /* Solo se permite cambiar password y/o role (según permisos) */
@@ -157,93 +157,3 @@ export const updateUserService = async (
         return { ok: false, error: { message: 'Error interno del servidor' } };
     }
 };
-
-function sanitizeProfile(data: { name?: string; corporateEmail?: string }) {
-    const out: { name?: string; corporateEmail?: string } = {};
-
-    if (data.name !== undefined) {
-        const v = data.name.trim().replace(/\s+/g, ' ');
-        if (v.length > 0) out.name = v;
-    }
-
-    if (data.corporateEmail !== undefined) {
-        const v = data.corporateEmail.trim();
-        if (v.length > 0) out.corporateEmail = v;
-    }
-
-    return out;
-}
-
-/* Actualizar perfil de usuario */
-export const updateOwnProfileService = async (
-    requester: User,
-    body: { name?: string, corporateEmail?: string }
-    ): Promise<ServiceResponse<SafeUser>> => {
-    try {
-        const userRepository = AppDataSource.getRepository(User);
-        
-        const cleanedBody = sanitizeProfile(body);
-
-        const user = await userRepository.findOneBy({ id: requester.id });
-        if (!user) return { ok: false, error: { message: 'Usuario no encontrado' } };
-
-        /* Solo permitir actualizar name y corporateEmail */
-        const dataUserUpdate: Partial<User> = {};
-
-        if( cleanedBody.name ) dataUserUpdate.name = cleanedBody.name;
-
-        if( cleanedBody.corporateEmail) {
-            const existingUser = await userRepository.findOneBy({ corporateEmail: cleanedBody.corporateEmail });
-
-            if (existingUser && existingUser.id !== user.id) {
-                return { ok: false, error: { message: 'El correo corporativo ya está en uso' } };
-            }
-
-            dataUserUpdate.corporateEmail = cleanedBody.corporateEmail;
-        }
-
-        if (Object.keys(dataUserUpdate).length === 0) { // No hay cambios
-            const { password: _p, ...safeUser } = user;
-            return { ok: true, data: safeUser };
-        };
-
-        userRepository.merge(user, dataUserUpdate);
-        const updatedUser = await userRepository.save(user);
-        
-        const { password: _p, ...safeUser } = updatedUser;
-        return { ok: true, data: safeUser };
-    } catch (error) {
-        console.error('Error en updateOwnProfileService:', error);
-        return { ok: false, error: { message: 'Error interno del servidor' } };
-    }
-}
-
-/* Cambiar contraseña propia del usuario */
-export const changeOwnPasswordService = async (
-    requester: User,
-    currentPassword: string,
-    newPassword: string): Promise<ServiceResponse<boolean>> => {
-    try {
-        const userRepository = AppDataSource.getRepository(User);
-
-        const user = await userRepository.findOneBy({ id: requester.id });
-        if (!user) return { ok: false, error: { message: 'Usuario no encontrado' } };
-
-        /* Verificar que la nueva contraseña sea diferente a la actual */
-        if (currentPassword === newPassword) return { ok: false, error: { message: 'La nueva contraseña debe ser diferente a la actual' } };
-
-        /* Verificar contraseña actual */
-        const isMatch = await comparePassword(currentPassword, user.password);
-        if (!isMatch) return { ok: false, error: { message: 'La contraseña actual es incorrecta' } };
-
-        /* Encriptar nueva contraseña */
-        user.password = await encryptPassword(newPassword);
-
-        await userRepository.save(user);
-
-        return { ok: true, data: true };
-    } catch (error) {
-        console.error('Error en changeOwnPasswordService:', error);
-        return { ok: false, error: { message: 'Error interno del servidor' } };
-    }
-}

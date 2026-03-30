@@ -153,3 +153,61 @@ export async function createEmployee(
         return { ok: false, error: { message: 'Error interno del servidor' } };
     }
 }
+
+export async function getEmployees(params: EmployeeQueryParams): Promise<ServiceResponse<Employee[]>> {
+    try {
+        const repo = AppDataSource.getRepository(Employee);
+
+        const { page = 1, limit = 20, includeTerminated = false } = params;
+
+        const qb = repo.createQueryBuilder('employee')
+            .leftJoinAndSelect('employee.profile', 'profile')
+            .orderBy('employee.createdAt', 'DESC')
+            .skip((page - 1) * limit)
+            .take(limit);
+        
+        if (params.rut) {
+            qb.andWhere(
+                `REPLACE(REPLACE(employee.rut, '.', '') = :rut`,
+                { rut: cleanRut(params.rut) }
+            );
+        }
+
+        if (params.name) {
+            qb.andWhere(
+                `CONCAT(employee.names, ' ', employee.paternalSurname) ILIKE :name`,
+                { name: `%${params.name}%` }
+            );
+        }
+
+        if (params.status) {
+            qb.andWhere('profile.status = :status', { status: params.status });
+        }
+
+        const employees = await qb.getMany();
+
+        return { ok: true, data: employees };
+    } catch (error) {
+        console.error('Error en getEmployees:', error);
+        return { ok: false, error: { message: 'Error interno del servidor' } };
+    }
+}
+
+export async function getEmployeeById(id: string, withDeleted = false): Promise<ServiceResponse<Employee>> {
+    try {
+        const repo = AppDataSource.getRepository(Employee);
+
+        const employee = await repo.findOne({
+            where: { id },
+            relations: ['profile', 'employmentHistories', 'leaves', 'usuario'],
+            withDeleted,
+        });
+
+        if (!employee) return { ok: false, error: { message: 'Empleado no encontrado', code: 'NOT_FOUND' } };
+
+        return { ok: true, data: employee };
+    } catch (error) {
+        console.error('Error en getEmployeeById:', error);
+        return { ok: false, error: { message: 'Error interno del servidor' } };
+    }
+}

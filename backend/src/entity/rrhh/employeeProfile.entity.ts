@@ -4,6 +4,8 @@ import {
     Column,
     OneToOne,
     JoinColumn,
+    CreateDateColumn,
+    UpdateDateColumn
 } from 'typeorm';
 
 import type { EstadoLaboral, FondoAFP, SeguroCesantia, TipoPrevisionSalud } from '../../types/employeeProfile.types.js';
@@ -92,4 +94,10 @@ export class EmployeeProfile {
 
     @Column({ type: 'varchar', length: 255, nullable: true })
     contractURL!: string | null;
+
+    @CreateDateColumn({ type: 'timestamp', name: 'created_at' })
+    createdAt!: Date;
+
+    @UpdateDateColumn({ type: 'timestamp', name: 'updated_at' })
+    updatedAt!: Date;
 }

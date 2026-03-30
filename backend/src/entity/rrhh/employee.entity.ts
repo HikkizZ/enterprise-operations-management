@@ -74,7 +74,7 @@ export class Employee {
     onSystem!: boolean;
 
     /* Relación 1:1 con ficha empresa */
-    @OneToOne(() => EmployeeProfile, (profile) => profile.employee, { cascade: true })
+    @OneToOne(() => EmployeeProfile, (profile) => profile.employee, { cascade: ['insert', 'update'] })
     profile!: EmployeeProfile;
 
     /* Relación 1:N con historial laboral */

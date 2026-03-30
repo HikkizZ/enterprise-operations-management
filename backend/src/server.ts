@@ -13,6 +13,7 @@ import { initialSetup } from './utils/initialSetup.js';
 import { configEnv } from './config/configEnv.js';
 import { registerPassportJWTStrategy } from './auth/passport.auth.js';
 import { errorHandler } from './middlewares/errorHandler.middleware.js';
+import { ensureUploadDirectories } from './services/file.service.js';
 
 /* Exportar la aplicación y servidor de pruebas */
 let server: any;
@@ -70,6 +71,7 @@ async function setupServer() {
         /* Initialize Database */
         await initializeDB();
         await initialSetup();
+        await ensureUploadDirectories();
 
         /* Create Express App */
         const app = createApp();

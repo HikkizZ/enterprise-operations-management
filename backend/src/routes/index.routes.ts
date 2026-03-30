@@ -1,4 +1,6 @@
 import { Router } from 'express';
+import authRoutes from './auth.routes.js';
+import userRoutes from './user.routes.js';
 
 const router: Router = Router()
 
@@ -10,5 +12,8 @@ router.get("/", (_req, res) => {
     timestamp: new Date().toISOString(),
   })
 })
+
+router.use('/auth', authRoutes);
+router.use('/users', userRoutes);
 
 export default router;

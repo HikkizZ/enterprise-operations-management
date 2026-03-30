@@ -7,4 +7,4 @@ export type ErrorCode =
 
 export type ServiceResponse<T> =
   | { ok: true; data: T }
-  | { ok: false; error: { message: string; code?: ErrorCode } };
+  | { ok: false; error: { message: string; code?: ErrorCode; meta?: Record<string, unknown> } };

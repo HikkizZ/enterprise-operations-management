@@ -26,7 +26,7 @@ function buildFullName(employee: Employee): string {
 export async function createEmployee(
     input: CreateEmployeeInput,
     registeredBy?: User
-): Promise<ServiceResponse<{ employee: Employee; coorporateEmail: string; tempPassword: string; emailSent: boolean }>> {
+): Promise<ServiceResponse<{ employee: Employee; corporateEmail: string; tempPassword: string; emailSent: boolean }>> {
     const queryRunner = AppDataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -46,6 +46,10 @@ export async function createEmployee(
         if (existingRut) {
             await queryRunner.rollbackTransaction();
             await queryRunner.release();
+
+            if (existingRut.deletedAt) {
+                return { ok: false, error: { message: 'Existe un empleado desvinculado con este RUT.', code: 'CONFLICT', meta: { employeeId: existingRut.id, canReactivate: true } } };
+            }
             return { ok: false, error: { message: 'Ya existe un empleado con este RUT', code: 'CONFLICT' } };
         }
 
@@ -145,7 +149,7 @@ export async function createEmployee(
             console.error('Error al enviar el correo electrónico:', emailError);
         }
 
-        return { ok: true, data: { employee: savedEmployee, coorporateEmail: corporateEmail, tempPassword, emailSent } };
+        return { ok: true, data: { employee: savedEmployee, corporateEmail: corporateEmail, tempPassword, emailSent } };
     } catch (error) {
         await queryRunner.rollbackTransaction();
         await queryRunner.release();
@@ -154,6 +158,7 @@ export async function createEmployee(
     }
 }
 
+/* Obtener lista de empleados con filtros y paginación */
 export async function getEmployees(params: EmployeeQueryParams): Promise<ServiceResponse<Employee[]>> {
     try {
         const repo = AppDataSource.getRepository(Employee);
@@ -165,10 +170,12 @@ export async function getEmployees(params: EmployeeQueryParams): Promise<Service
             .orderBy('employee.createdAt', 'DESC')
             .skip((page - 1) * limit)
             .take(limit);
-        
+
+        if (includeTerminated) qb.withDeleted();
+
         if (params.rut) {
             qb.andWhere(
-                `REPLACE(REPLACE(employee.rut, '.', '') = :rut`,
+                `REPLACE(REPLACE(employee.rut, '.', ''), '-', '') = :rut`,
                 { rut: cleanRut(params.rut) }
             );
         }
@@ -193,6 +200,7 @@ export async function getEmployees(params: EmployeeQueryParams): Promise<Service
     }
 }
 
+/* Obtener detalles de un empleado por ID */
 export async function getEmployeeById(id: string, withDeleted = false): Promise<ServiceResponse<Employee>> {
     try {
         const repo = AppDataSource.getRepository(Employee);
@@ -208,6 +216,287 @@ export async function getEmployeeById(id: string, withDeleted = false): Promise<
         return { ok: true, data: employee };
     } catch (error) {
         console.error('Error en getEmployeeById:', error);
+        return { ok: false, error: { message: 'Error interno del servidor' } };
+    }
+}
+
+/* Actualizar datos de un empleado */
+export async function updateEmployee(id: string, input: UpdateEmployeeInput, registeredBy?: User): Promise<ServiceResponse<Employee>> {
+    const queryRunner = AppDataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+        const employeeRepo = queryRunner.manager.getRepository(Employee);
+
+        const employee = await employeeRepo.findOne({ where: { id, deletedAt: IsNull() }, relations: ['usuario', 'profile'] });
+
+        if (!employee) {
+            await queryRunner.rollbackTransaction();
+            await queryRunner.release();
+            return { ok: false, error: { message: 'Empleado no encontrado', code: 'NOT_FOUND' } };
+        }
+
+        if (input.email && input.email !== employee.email) {
+            const existing = await employeeRepo.findOne({ where: { email: input.email.toLowerCase(), id: Not(id) }, withDeleted: true });
+
+            if (existing) {
+                await queryRunner.rollbackTransaction();
+                await queryRunner.release();
+                return { ok: false, error: { message: 'Ya existe un empleado con este correo electrónico', code: 'CONFLICT' } };
+            }
+        }
+
+        const nameChanged = 
+        (input.names !== undefined && input.names !== employee.names) || 
+        (input.paternalSurname !== undefined && input.paternalSurname !== employee.paternalSurname);
+
+        if (input.names) employee.names = input.names.trim();
+        if (input.paternalSurname) employee.paternalSurname = input.paternalSurname.trim();
+        if (input.maternalSurname !== undefined) employee.maternalSurname = input.maternalSurname?.trim() ?? null;
+        if (input.birthDate !== undefined) employee.birthDate = input.birthDate ?? null;
+        if (input.phoneNumber !== undefined) employee.phoneNumber = input.phoneNumber?.trim() ?? null;
+        if (input.email) employee.email = input.email.toLowerCase().trim();
+        if (input.emergencyContact !== undefined) employee.emergencyContact = input.emergencyContact?.trim() ?? null;
+        if (input.address !== undefined) employee.address = input.address?.trim() ?? null;
+
+        await employeeRepo.save(employee);
+
+        let emailSent = false;
+
+        if (nameChanged && employee.usuario) {
+            const newCorporateEmail = await generateCorporateEmail(employee.names, employee.paternalSurname, queryRunner);
+            const newTempPassword = generateSecurePassword();
+            const hashedPassword = await encryptPassword(newTempPassword);
+
+            const userRepo = queryRunner.manager.getRepository(User);
+            employee.usuario.name = buildFullName(employee);
+            employee.usuario.corporateEmail = newCorporateEmail;
+            employee.usuario.password = hashedPassword;
+            await userRepo.save(employee.usuario);
+
+            await queryRunner.commitTransaction();
+            await queryRunner.release();
+
+            try {
+                await sendEmail({
+                    to: employee.email,
+                    subject: 'Actualización de credenciales - Empleado actualizado',
+                    html: credentialsTemplate({ name: buildFullName(employee), corporateEmail: newCorporateEmail, password: newTempPassword }),
+                });
+                emailSent = true;
+            } catch (emailError) {
+                console.error('Error al enviar nuevas credenciales:', emailError);
+            }
+
+            return { ok: true, data: employee };
+        }
+
+        const historyRepo = queryRunner.manager.getRepository(EmploymentHistory);
+        
+        const history = historyRepo.create({
+            employee,
+            jobTitle: employee.profile?.jobTitle ?? 'Por definir',
+            area: employee.profile?.area ?? 'Por definir',
+            contractType: employee.profile?.contractType ?? 'Por definir',
+            employmentType: employee.profile?.employmentType ?? 'Por definir',
+            baseSalary: employee.profile?.baseSalary ?? 0,
+            startDate: employee.profile?.startDateContract ?? employee.hireDate,
+            status: employee.profile?.status ?? estadoLaboral.ACTIVO,
+            afp: employee.profile?.fondoAFP ?? 'Por definir',
+            healthInsurance: employee.profile?.previsionSalud ?? 'Por definir',
+            unemploymentInsurance: employee.profile?.seguroCesantia ?? 'Por definir',
+            notes: 'Actualización de datos personales',
+            registeredBy: registeredBy ?? null,
+        });
+
+        await historyRepo.save(history);
+
+        await queryRunner.commitTransaction();
+        await queryRunner.release();
+
+        return { ok: true, data: employee };
+    } catch (error) {
+        await queryRunner.rollbackTransaction();
+        await queryRunner.release();
+        console.error('Error en updateEmployee:', error);
+        return { ok: false, error: { message: 'Error interno del servidor' } };
+    }
+}
+
+/* Desvincular un empleado (soft delete) */
+export async function terminateEmployee(id: string, reason: string, registeredBy?: User): Promise<ServiceResponse<Employee>> {
+    const queryRunner = AppDataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+        const employeeRepo = queryRunner.manager.getRepository(Employee);
+
+        const employee = await employeeRepo.findOne({ where: { id, deletedAt: IsNull() }, relations: ['usuario', 'profile'] });
+
+        if (!employee) {
+            await queryRunner.rollbackTransaction();
+            await queryRunner.release();
+            return { ok: false, error: { message: 'Empleado no encontrado o ya desvinculado', code: 'NOT_FOUND' } };
+        }
+
+        if (employee.profile && (employee.profile.status === estadoLaboral.LICENCIA || employee.profile.status === estadoLaboral.PERMISO)) {
+            await queryRunner.rollbackTransaction();
+            await queryRunner.release();
+            return { ok: false, error: { message: 'No se puede desvincular a un empleado que se encuentra en licencia o permiso', code: 'CONFLICT' } };
+        }
+
+        await queryRunner.manager.softDelete(Employee, id);
+        employee.onSystem = false;
+        await employeeRepo.save(employee);
+
+        if (employee.usuario) {
+            const userRepo = queryRunner.manager.getRepository(User);
+            employee.usuario.accountStatus = 'Inactiva';
+            await userRepo.save(employee.usuario);
+        }
+
+        if (employee.profile) {
+            const profileRepo = queryRunner.manager.getRepository(EmployeeProfile);
+            employee.profile.status = estadoLaboral.DESVINCULADO;
+            employee.profile.endDateContract = new Date();
+            employee.profile.terminationReason = reason;
+            await profileRepo.save(employee.profile);
+        }
+
+        const historyRepo = queryRunner.manager.getRepository(EmploymentHistory);
+
+        const history = historyRepo.create({
+            employee,
+            jobTitle: employee.profile?.jobTitle ?? 'Por Definir',
+            area: employee.profile?.area ?? 'Por Definir',
+            contractType: employee.profile?.contractType ?? 'Por Definir',
+            employmentType: employee.profile?.employmentType ?? 'Por Definir',
+            baseSalary: employee.profile?.baseSalary ?? 0,
+            startDate: employee.profile?.startDateContract ?? employee.hireDate,
+            endDate: new Date(),
+            status: estadoLaboral.DESVINCULADO,
+            afp: employee.profile?.fondoAFP ?? 'Por Definir',
+            healthInsurance: employee.profile?.previsionSalud ?? 'Por Definir',
+            unemploymentInsurance: employee.profile?.seguroCesantia ?? 'Por Definir',
+            terminationReason: reason,
+            notes: 'Desvinculación de empleado',
+            registeredBy: registeredBy ?? null,
+        });
+
+        await historyRepo.save(history);
+
+        await queryRunner.commitTransaction();
+        await queryRunner.release();
+        return { ok: true, data: employee };
+    } catch (error) {
+        await queryRunner.rollbackTransaction();
+        await queryRunner.release();
+        console.error('Error en terminateEmployee:', error);
+        return { ok: false, error: { message: 'Error interno del servidor' } };
+    }
+}
+
+/* Reactivar un empleado desvinculado */
+export async function reactivateEmployee(
+    id: string,
+    input: ReactivateEmployeeInput,
+    registeredBy?: User
+): Promise<ServiceResponse<{ employee: Employee; corporateEmail: string; tempPassword: string; emailSent: boolean }>> {
+    const queryRunner = AppDataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+        const employeeRepo = queryRunner.manager.getRepository(Employee);
+
+        const employee = await employeeRepo.findOne({ where: { id }, relations: ['profile', 'usuario'], withDeleted: true });
+
+        if (!employee) {
+            await queryRunner.rollbackTransaction();
+            await queryRunner.release();
+            return { ok: false, error: { message: 'Empleado no encontrado o no está desvinculado', code: 'NOT_FOUND' } };
+        }
+
+        await queryRunner.manager.restore(Employee, id);
+
+        if (input.names) employee.names = input.names.trim();
+        if (input.paternalSurname) employee.paternalSurname = input.paternalSurname.trim();
+        if (input.maternalSurname !== undefined) employee.maternalSurname = input.maternalSurname?.trim() ?? null;
+        if (input.phoneNumber !== undefined) employee.phoneNumber = input.phoneNumber?.trim() ?? null;
+        if (input.address !== undefined) employee.address = input.address?.trim() ?? null;
+        employee.onSystem = true;
+
+        await employeeRepo.save(employee);
+
+        const corporateEmail = await generateCorporateEmail(employee.names, employee.paternalSurname, queryRunner);
+        const tempPassword = generateSecurePassword();
+        const hashedPassword = await encryptPassword(tempPassword);
+
+        if (employee.usuario) {
+            const userRepo = queryRunner.manager.getRepository(User);
+            employee.usuario.name = buildFullName(employee);
+            employee.usuario.corporateEmail = corporateEmail;
+            employee.usuario.password = hashedPassword;
+            employee.usuario.accountStatus = 'Activa';
+            await userRepo.save(employee.usuario);
+        }
+
+        if (employee.profile) {
+            const profileRepo = queryRunner.manager.getRepository(EmployeeProfile);
+            employee.profile.status = estadoLaboral.ACTIVO;
+            employee.profile.startDateContract = new Date();
+            employee.profile.endDateContract = null;
+            employee.profile.terminationReason = null;
+            employee.profile.leaveStartDate = null;
+            employee.profile.leaveEndDate = null;
+            employee.profile.leaveReason = null;
+            await profileRepo.save(employee.profile);
+        }
+
+        const historyRepo = queryRunner.manager.getRepository(EmploymentHistory);
+        
+        const history = historyRepo.create({
+            employee,
+            jobTitle: employee.profile?.jobTitle ?? 'Por Definir',
+            area: employee.profile?.area ?? 'Por Definir',
+            contractType: employee.profile?.contractType ?? 'Por Definir',
+            employmentType: employee.profile?.employmentType ?? 'Por Definir',
+            baseSalary: employee.profile?.baseSalary ?? 0,
+            startDate: new Date(),
+            status: estadoLaboral.ACTIVO,
+            afp: employee.profile?.fondoAFP ?? 'Por Definir',
+            healthInsurance: employee.profile?.previsionSalud ?? 'Por Definir',
+            unemploymentInsurance: employee.profile?.seguroCesantia ?? 'Por Definir',
+            reactivationReason: input.reactivationReason,
+            notes: 'Reactivación de empleado',
+            registeredBy: registeredBy ?? null,
+        });
+
+        await historyRepo.save(history);
+
+        await queryRunner.commitTransaction();
+        await queryRunner.release();
+
+        let emailSent = false;
+
+        try {
+            await sendEmail({
+                to: employee.email,
+                subject: 'Tus nuevas credenciales de acceso - Bienvenido nuevamente',
+                html: credentialsTemplate({ name: buildFullName(employee), corporateEmail, password: tempPassword }),
+            });
+            emailSent = true;
+        } catch (emailError) {
+            console.error('Error al enviar credenciales de reactivación:', emailError);
+        }
+
+        return { ok: true, data: { employee, corporateEmail, tempPassword, emailSent } };
+    } catch (error) {
+        await queryRunner.rollbackTransaction();
+        await queryRunner.release();
+        console.error('Error en reactivateEmployee:', error);
         return { ok: false, error: { message: 'Error interno del servidor' } };
     }
 }

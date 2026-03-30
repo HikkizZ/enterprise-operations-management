@@ -28,6 +28,11 @@ export const configEnv = {
     auth: {
         accessTokenSecret: process.env.ACCESS_TOKEN_SECRET!,
         cookieKey: process.env.COOKIE_KEY!,
+        superAdmin: {
+            name: process.env.SUPER_ADMIN_NAME!,
+            email: process.env.SUPER_ADMIN_EMAIL!,
+            password: process.env.SUPER_ADMIN_PASSWORD!,
+        }
     },
 
     domains: {

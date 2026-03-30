@@ -2,7 +2,6 @@ import 'reflect-metadata'; // Required for TypeORM
 
 import express, { json, urlencoded } from 'express';
 import type { Application } from 'express';
-import session from 'express-session';
 import cors from 'cors';
 import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
@@ -10,8 +9,10 @@ import passport from 'passport';
 
 import indexRoutes from './routes/index.routes.js';
 import { initializeDB } from './config/configDB.js';
+import { initialSetup } from './utils/initialSetup.js';
 import { configEnv } from './config/configEnv.js';
 import { registerPassportJWTStrategy } from './auth/passport.auth.js';
+import { errorHandler } from './middlewares/errorHandler.middleware.js';
 
 /* Exportar la aplicación y servidor de pruebas */
 let server: any;
@@ -59,6 +60,7 @@ export function createApp() {
 
     app.use('/api', indexRoutes);
 
+    app.use(errorHandler);
     return app;
 }
 async function setupServer() {
@@ -67,6 +69,7 @@ async function setupServer() {
 
         /* Initialize Database */
         await initializeDB();
+        await initialSetup();
 
         /* Create Express App */
         const app = createApp();

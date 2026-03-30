@@ -38,5 +38,21 @@ export const configEnv = {
     domains: {
         allowedEmailDomains: process.env.ALLOWED_EMAIL_DOMAINS ? process.env.ALLOWED_EMAIL_DOMAINS.split(',').map(domain => domain.trim()) : [],
         allowedCorporateEmailDomains: process.env.ALLOWED_CORPORATE_EMAIL_DOMAINS ? process.env.ALLOWED_CORPORATE_EMAIL_DOMAINS.split(',').map(domain => domain.trim()) : [],
-    }
+    },
+
+    company: {
+        emailDomain: process.env.COMPANY_EMAIL_DOMAIN ?? 'company.com',
+    },
+
+    email: {
+        host: process.env.SMTP_HOST ?? 'smtp.gmail.com',
+        port: Number(process.env.SMTP_PORT ?? 587),
+        user: process.env.SMTP_USER!,
+        pass: process.env.SMTP_PASS!,
+        from: process.env.SMTP_FROM ?? 'EOMS <no-reply@company.com>',
+    },
+
+    storage: {
+        uploadDir: process.env.UPLOAD_DIR ?? 'uploads',
+    },
 };

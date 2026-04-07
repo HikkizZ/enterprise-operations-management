@@ -9,6 +9,7 @@ import {
 } from 'typeorm';
 import { Employee } from './employee.entity.js';
 import { User } from '../user.entity.js';
+import type { EventType } from '../../types/employmentHistory.types.js';
 
 @Entity('employment_histories')
 export class EmploymentHistory {
@@ -59,6 +60,9 @@ export class EmploymentHistory {
 
     @Column({ type: 'varchar', length: 30, nullable: false })
     status!: string;
+
+    @Column({ type: 'varchar', length: 50, nullable: false })
+    eventType!: EventType;
 
     @Column({ type: 'date', nullable: true })
     leaveStartDate!: Date | null;

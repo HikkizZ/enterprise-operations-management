@@ -13,7 +13,7 @@
     "rootDir": "./src",
     "outDir": "./dist",
     "typeRoots": ["./node_modules/@types", "./src/types"],
-    "types": ["node", "express", "mocha", "chai"],
+    "types": ["node", "express"],
     "resolveJsonModule": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,

@@ -1,19 +1,19 @@
 import type { User } from "../entity/user.entity.js";
 
-export const userRoles = [
-  'SuperAdministrador',
-  'Administrador',
-  'Usuario',
-  'RecursosHumanos',
-  'Gerencia',
-  'Ventas',
-  'Arriendo',
-  'Finanzas',
-  'Mecánico',
-  'Mantenciones de Maquinaria',
-] as const;
+export const userRoles = {
+  SUPER_ADMINISTRADOR: 'SuperAdministrador',
+  ADMINISTRADOR: 'Administrador',
+  USUARIO: 'Usuario',
+  RECURSOS_HUMANOS: 'RecursosHumanos',
+  GERENCIA: 'Gerencia',
+  VENTAS: 'Ventas',
+  ARRIENDO: 'Arriendo',
+  FINANZAS: 'Finanzas',
+  MECANICO: 'Mecánico',
+  MANTENCIONES_MAQUINARIA: 'Mantenciones de Maquinaria',
+} as const;
 
-export type UserRole = (typeof userRoles)[number];
+export type UserRole = (typeof userRoles)[keyof typeof userRoles];
 
 export const accountStatuses = ['Activa', 'Inactiva', 'Suspendida'] as const;
 

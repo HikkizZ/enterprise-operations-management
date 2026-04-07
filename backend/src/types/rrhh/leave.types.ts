@@ -24,5 +24,5 @@ export interface CreateLeaveInput {
 
 export interface ReviewLeaveInput {
     status: 'Aprobada' | 'Rechazada';
-    comments?: string;
+    comments?: string | undefined;
 }

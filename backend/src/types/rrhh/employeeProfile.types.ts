@@ -52,14 +52,14 @@ export const tipoJornada = {
 export type TipoJornada = (typeof tipoJornada)[keyof typeof tipoJornada];
 
 export interface UpdateProfileInput {
-    jobTitle?: string;
-    area?: string;
-    contractType?: TipoContrato;
-    employmentType?: TipoJornada;
-    baseSalary?: number;
-    previsionSalud?: TipoPrevisionSalud | null;
-    fondoAFP?: FondoAFP | null;
-    seguroCesantia?: SeguroCesantia | null;
-    startDateContract?: Date | null;
-    endDateContract?: Date | null;
+    jobTitle?: string | undefined;
+    area?: string | undefined;
+    contractType?: TipoContrato | undefined;
+    employmentType?: TipoJornada | undefined;
+    baseSalary?: number | undefined;
+    previsionSalud?: TipoPrevisionSalud | null | undefined;
+    fondoAFP?: FondoAFP | null | undefined;
+    seguroCesantia?: SeguroCesantia | null | undefined;
+    startDateContract?: Date | null | undefined;
+    endDateContract?: Date | null | undefined;
 }

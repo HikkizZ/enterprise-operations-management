@@ -4,40 +4,40 @@ export interface CreateEmployeeInput {
     rut: string;
     names: string;
     paternalSurname: string;
-    maternalSurname?: string;
-    birthDate?: Date;
-    phoneNumber?: string;
+    maternalSurname?: string | undefined;
+    birthDate?: Date | undefined;
+    phoneNumber?: string | undefined;
     email: string;
-    emergencyContact?: string;
-    address?: string;
+    emergencyContact?: string | undefined;
+    address?: string | undefined;
     hireDate: Date;
 }
 
 export interface UpdateEmployeeInput {
-    names?: string;
-    paternalSurname?: string;
-    maternalSurname?: string;
-    birthDate?: Date | null;
-    phoneNumber?: string | null;
-    email?: string;
-    emergencyContact?: string | null;
-    address?: string | null;
+    names?: string | undefined;
+    paternalSurname?: string | undefined;
+    maternalSurname?: string | null | undefined;
+    birthDate?: Date | null | undefined;
+    phoneNumber?: string | null | undefined;
+    email?: string | undefined;
+    emergencyContact?: string | null | undefined;
+    address?: string | null | undefined;
 }
 
 export interface ReactivateEmployeeInput {
-    names?: string;
-    paternalSurname?: string;
-    maternalSurname?: string;
-    phoneNumber?: string | null;
-    address?: string | null;
+    names?: string | undefined;
+    paternalSurname?: string | undefined;
+    maternalSurname?: string | undefined;
+    phoneNumber?: string | null | undefined;
+    address?: string | null | undefined;
     reactivationReason: string;
 }
 
 export interface EmployeeQueryParams {
-    page?: number;
-    limit?: number;
-    rut?: string;
-    name?: string;
-    status?: EstadoLaboral;
-    includeTerminated?: boolean;
+    page?: number | undefined;
+    limit?: number | undefined;
+    rut?: string | undefined;
+    name?: string | undefined;
+    status?: EstadoLaboral | undefined;
+    includeTerminated?: boolean | undefined;
 }

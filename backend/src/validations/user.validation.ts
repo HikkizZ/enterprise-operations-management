@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { createRutSchema } from 'rut-kit/zod';
-import { userRoles } from '../types/user.types.js';
+import { userRoles, type UserRole } from '../types/user.types.js';
 import { configEnv } from '../config/configEnv.js';
 
 const allowedCorporateEmailDomains = configEnv.domains.allowedCorporateEmailDomains;
@@ -21,6 +21,8 @@ const rutSchema = createRutSchema({
     outputFormat: 'formatted',
 });
 
+const userRolesValues = Object.values(userRoles) as [UserRole, ...UserRole[]];
+
 /* Query Params para buscar usuarios */
 export const userQuerySchema = z.object({
     id: z.uuid('El ID debe ser un UUID válido').optional(),
@@ -31,7 +33,7 @@ export const userQuerySchema = z.object({
         .regex(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/, 'El nombre solo puede contener letras y espacios')
         .optional(),
     rut: rutSchema.optional(),
-    role: z.enum(userRoles).optional(),
+    role: z.enum(userRolesValues).optional(),
 }).refine(
     (data) => Object.values(data).some(v => v !== undefined),
     'Se debe proporcionar al menos un parámetro de consulta: id, corporateEmail, rut, role o name'
@@ -53,7 +55,7 @@ export const userBodySchema = z.object({
         .max(16, 'La contraseña no debe exceder los 16 caracteres')
         .regex(/^[A-Za-z0-9!@#$%^&*_\-\.]+$/, 'La contraseña solo puede contener letras, números y los siguientes caracteres especiales: !@#$%^&*_-.')
         .optional(),
-    role: z.enum(userRoles).optional(),
+    role: z.enum(userRolesValues).optional(),
 }).superRefine((data, ctx) => {
     const hasAtLeastOne = Object.values(data).some(v => v !== undefined);
     if (!hasAtLeastOne) {

@@ -18,7 +18,7 @@ export class User {
     @Column({ type: 'varchar', length: 255 })
     password!: string;
 
-    @Column({ type: 'enum', enum: userRoles, default: 'Usuario' })
+    @Column({ type: 'enum', enum: Object.values(userRoles), default: userRoles.USUARIO })
     role!: UserRole;
 
     @Index('IDX_USER_RUT', { unique: true })

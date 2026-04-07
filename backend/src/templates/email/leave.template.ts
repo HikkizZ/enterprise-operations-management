@@ -3,11 +3,11 @@ interface LeaveApprovedTemplate {
     leaveType: string;
     startDate: string;
     endDate: string;
-    reason?: string;
+    reviewerComments?: string;
 }
 
 export function leaveApprovedTemplate({
-    name, leaveType, startDate, endDate, reason
+    name, leaveType, startDate, endDate, reviewerComments
 }: LeaveApprovedTemplate): string {
     return `
         <h2>Solicitud aprobada</h2>
@@ -16,7 +16,7 @@ export function leaveApprovedTemplate({
         <ul>
             <li><b>Fecha inicio:</b> ${startDate}</li>
             <li><b>Fecha fin:</b> ${endDate}</li>
-            ${reason ? `<li><b>Observaciones:</b> ${reason}</li>` : ''}
+            ${reviewerComments ? `<li><b>Observaciones:</b> ${reviewerComments}</li>` : ''}
         </ul>
         <hr/>
         <small>Mensaje automático, no respondas este correo.</small>
@@ -24,7 +24,7 @@ export function leaveApprovedTemplate({
 }
 
 export function leaveRejectedTemplate({
-    name, leaveType, startDate, endDate, reason
+    name, leaveType, startDate, endDate, reviewerComments
 }: LeaveApprovedTemplate): string {
     return `
         <h2>Solicitud rechazada</h2>
@@ -33,7 +33,7 @@ export function leaveRejectedTemplate({
         <ul>
             <li><b>Fecha inicio:</b> ${startDate}</li>
             <li><b>Fecha fin:</b> ${endDate}</li>
-            ${reason ? `<li><b>Motivo:</b> ${reason}</li>` : ''}
+            ${reviewerComments ? `<li><b>Observaciones:</b> ${reviewerComments}</li>` : ''}
         </ul>
         <hr/>
         <small>Mensaje automático, no respondas este correo.</small>

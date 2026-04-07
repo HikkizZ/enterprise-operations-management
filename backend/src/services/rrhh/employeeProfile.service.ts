@@ -5,6 +5,7 @@ import { EmploymentHistory } from "../../entity/rrhh/employmentHistory.entity.js
 import { User } from "../../entity/user.entity.js";
 import { IsNull } from "typeorm";
 import { estadoLaboral, tipoContrato, type UpdateProfileInput } from "../../types/employeeProfile.types.js";
+import { eventType } from "../../types/employmentHistory.types.js";
 import type { ServiceResponse } from "../../types/common.types.js";
 
 const DEFAULT_VALUE = 'Por definir';
@@ -135,6 +136,7 @@ export async function updateProfile(employeeId: string, input: UpdateProfileInpu
             baseSalary: profile.baseSalary,
             startDate: profile.startDateContract ?? employee.hireDate,
             status: profile.status,
+            eventType: eventType.ACTUALIZACION_LABORAL,
             afp: profile.fondoAFP ?? 'Por definir',
             healthInsurance: profile.previsionSalud ?? 'Por definir',
             unemploymentInsurance: profile.seguroCesantia ?? 'Por definir',
@@ -196,6 +198,7 @@ export async function uploadContract(employeeId: string, filename: string, regis
             baseSalary: profile.baseSalary,
             startDate: profile.startDateContract ?? employee.hireDate,
             status: profile.status,
+            eventType: eventType.CARGA_CONTRATO,
             afp: profile.fondoAFP ?? 'Por definir',
             healthInsurance: profile.previsionSalud ?? 'Por definir',
             unemploymentInsurance: profile.seguroCesantia ?? 'Por definir',
@@ -258,6 +261,7 @@ export async function deleteContract(employeeId: string, registeredBy?: User): P
             baseSalary: profile.baseSalary,
             startDate: profile.startDateContract ?? employee.hireDate,
             status: profile.status,
+            eventType: eventType.ELIMINACION_CONTRATO,
             afp: profile.fondoAFP ?? 'Por definir',
             healthInsurance: profile.previsionSalud ?? 'Por definir',
             unemploymentInsurance: profile.seguroCesantia ?? 'Por definir',

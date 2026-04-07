@@ -10,6 +10,7 @@ import { generateCorporateEmail, generateSecurePassword } from "../../helpers/co
 import { sendEmail } from "../email.service.js";
 import { credentialsTemplate } from "../../templates/email/credentials.template.js";
 import { estadoLaboral } from "../../types/employeeProfile.types.js";
+import { eventType } from "../../types/employmentHistory.types.js";
 import type { ServiceResponse } from "../../types/common.types.js";
 import type {
     CreateEmployeeInput,
@@ -122,6 +123,7 @@ export async function createEmployee(
             baseSalary: 0,
             startDate: input.hireDate,
             status: estadoLaboral.ACTIVO,
+            eventType: eventType.CONTRATACION,
             afp: 'Por definir',
             healthInsurance: 'Por definir',
             unemploymentInsurance: 'Por definir',
@@ -303,6 +305,7 @@ export async function updateEmployee(id: string, input: UpdateEmployeeInput, reg
             baseSalary: employee.profile?.baseSalary ?? 0,
             startDate: employee.profile?.startDateContract ?? employee.hireDate,
             status: employee.profile?.status ?? estadoLaboral.ACTIVO,
+            eventType: eventType.ACTUALIZACION_PERSONAL,
             afp: employee.profile?.fondoAFP ?? 'Por definir',
             healthInsurance: employee.profile?.previsionSalud ?? 'Por definir',
             unemploymentInsurance: employee.profile?.seguroCesantia ?? 'Por definir',
@@ -377,6 +380,7 @@ export async function terminateEmployee(id: string, reason: string, registeredBy
             startDate: employee.profile?.startDateContract ?? employee.hireDate,
             endDate: new Date(),
             status: estadoLaboral.DESVINCULADO,
+            eventType: eventType.DESVINCULACION,
             afp: employee.profile?.fondoAFP ?? 'Por Definir',
             healthInsurance: employee.profile?.previsionSalud ?? 'Por Definir',
             unemploymentInsurance: employee.profile?.seguroCesantia ?? 'Por Definir',
@@ -466,6 +470,7 @@ export async function reactivateEmployee(
             baseSalary: employee.profile?.baseSalary ?? 0,
             startDate: new Date(),
             status: estadoLaboral.ACTIVO,
+            eventType: eventType.REACTIVACION,
             afp: employee.profile?.fondoAFP ?? 'Por Definir',
             healthInsurance: employee.profile?.previsionSalud ?? 'Por Definir',
             unemploymentInsurance: employee.profile?.seguroCesantia ?? 'Por Definir',

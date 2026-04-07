@@ -56,7 +56,7 @@ El sistema está organizado en módulos independientes pero interoperables:
 
 ## 🏗️ Arquitectura General
 
-Business Process Management System sigue una arquitectura **modular**, orientada a separar responsabilidades y reducir el acoplamiento entre dominios.
+Enterprise Operations Management System sigue una arquitectura **modular**, orientada a separar responsabilidades y reducir el acoplamiento entre dominios.
 
 Principios clave:
 
@@ -71,6 +71,31 @@ La arquitectura fue diseñada para permitir:
 - Evolución independiente de módulos
 - Escalabilidad funcional
 - Facilidad de mantenimiento
+
+---
+
+## 🛠️ Stack Tecnológico
+
+### Backend
+
+- **Runtime:** Node.js con TypeScript
+- **Framework:** Express.js
+- **ORM:** TypeORM
+- **Base de datos:** PostgreSQL
+- **Autenticación:** Passport.js + JWT
+- **Validación:** Zod v4
+- **Archivos:** Multer
+- **Email:** Nodemailer
+  
+### Frontend
+
+- **Framework:** React 18 + Vite
+- **Routing:** React Router v6
+  
+### Herramientas
+
+- **Testing:** Vitest + Supertest
+- **Deploy:** PM2
 
 ---
 

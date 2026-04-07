@@ -1,11 +1,11 @@
-export const TipoSolicitud = {
+export const tipoSolicitud = {
     LICENCIA: "Licencia médica",
     PERMISO: "Permiso administrativo"
 } as const;
 
-export type TipoSolicitud = (typeof TipoSolicitud)[keyof typeof TipoSolicitud];
+export type TipoSolicitud = (typeof tipoSolicitud)[keyof typeof tipoSolicitud];
 
-export const EstadoSolicitud = {
+export const estadoSolicitud = {
     PENDIENTE: "Pendiente",
     APROBADA: "Aprobada",
     RECHAZADA: "Rechazada",
@@ -13,7 +13,7 @@ export const EstadoSolicitud = {
     CANCELADA: "Cancelada",
 } as const
 
-export type EstadoSolicitud = (typeof EstadoSolicitud)[keyof typeof EstadoSolicitud];
+export type EstadoSolicitud = (typeof estadoSolicitud)[keyof typeof estadoSolicitud];
 
 export interface CreateLeaveInput {
     type: TipoSolicitud;

@@ -7,7 +7,7 @@ import {
     JoinColumn,
 } from 'typeorm';
 
-import { TipoSolicitud, EstadoSolicitud } from '../../types/leave.types.js';
+import { tipoSolicitud, type TipoSolicitud, estadoSolicitud, type EstadoSolicitud } from '../../types/rrhh/leave.types.js';
 
 import { Employee } from './employee.entity.js';
 import { User } from '../user.entity.js';
@@ -23,7 +23,7 @@ export class Leave {
     @JoinColumn({ name: 'employeeId' })
     employee!: Employee;
 
-    @Column({ type: 'enum', enum: Object.values(TipoSolicitud), nullable: false })
+    @Column({ type: 'enum', enum: Object.values(tipoSolicitud), nullable: false })
     type!: TipoSolicitud;
 
     @Column({
@@ -43,7 +43,7 @@ export class Leave {
     @Column({ type: 'text', nullable: false })
     reason!: string;
 
-    @Column({ type: 'enum', enum: Object.values(EstadoSolicitud), default: EstadoSolicitud.PENDIENTE })
+    @Column({ type: 'enum', enum: Object.values(estadoSolicitud), default: estadoSolicitud.PENDIENTE })
     status!: EstadoSolicitud;
 
     @Column({ type: 'text', nullable: true })

@@ -9,7 +9,7 @@ import {
 } from 'typeorm';
 import { Employee } from './employee.entity.js';
 import { User } from '../user.entity.js';
-import type { EventType } from '../../types/employmentHistory.types.js';
+import type { EventType } from '../../types/rrhh/employmentHistory.types.js';
 
 @Entity('employment_histories')
 export class EmploymentHistory {

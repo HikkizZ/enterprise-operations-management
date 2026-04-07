@@ -4,8 +4,8 @@ import { EmployeeProfile } from "../../entity/rrhh/employeeProfile.entity.js";
 import { EmploymentHistory } from "../../entity/rrhh/employmentHistory.entity.js";
 import { User } from "../../entity/user.entity.js";
 import { IsNull } from "typeorm";
-import { estadoLaboral, tipoContrato, type UpdateProfileInput } from "../../types/employeeProfile.types.js";
-import { eventType } from "../../types/employmentHistory.types.js";
+import { estadoLaboral, tipoContrato, type UpdateProfileInput } from "../../types/rrhh/employeeProfile.types.js";
+import { eventType } from "../../types/rrhh/employmentHistory.types.js";
 import type { ServiceResponse } from "../../types/common.types.js";
 
 const DEFAULT_VALUE = 'Por definir';

@@ -8,7 +8,7 @@ import {
     UpdateDateColumn
 } from 'typeorm';
 
-import type { EstadoLaboral, FondoAFP, SeguroCesantia, TipoPrevisionSalud } from '../../types/employeeProfile.types.js';
+import type { EstadoLaboral, FondoAFP, SeguroCesantia, TipoPrevisionSalud } from '../../types/rrhh/employeeProfile.types.js';
 import { Employee } from './employee.entity.js';
 import { makeDateTransformer } from '../../helpers/transformerDate.helper.js';
 

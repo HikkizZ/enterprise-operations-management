@@ -5,9 +5,9 @@ import { EmploymentHistory } from "../../entity/rrhh/employmentHistory.entity.js
 import { Leave } from "../../entity/rrhh/leave.entity.js";
 import { User } from "../../entity/user.entity.js";
 import { IsNull, LessThanOrEqual, MoreThanOrEqual, LessThan } from "typeorm";
-import { estadoLaboral } from "../../types/employeeProfile.types.js";
-import { EstadoSolicitud, TipoSolicitud, type CreateLeaveInput, type ReviewLeaveInput } from "../../types/leave.types.js";
-import { eventType } from "../../types/employmentHistory.types.js";
+import { estadoLaboral } from "../../types/rrhh/employeeProfile.types.js";
+import { estadoSolicitud, tipoSolicitud, type CreateLeaveInput, type ReviewLeaveInput } from "../../types/rrhh/leave.types.js";
+import { eventType } from "../../types/rrhh/employmentHistory.types.js";
 import { sendEmail } from "../email.service.js";
 import { leaveApprovedTemplate, leaveRejectedTemplate } from "../../templates/email/leave.template.js";
 import type { ServiceResponse } from "../../types/common.types.js";
@@ -44,7 +44,7 @@ export async function createLeave(employeeId: string, input: CreateLeaveInput, f
         }
 
         /* Validar que licencia médica tenga archivo adjunto */
-        if (input.type === TipoSolicitud.LICENCIA && !filename) {
+        if (input.type === tipoSolicitud.LICENCIA && !filename) {
             await queryRunner.rollbackTransaction();
             await queryRunner.release();
             return { ok: false, error: { message: 'Las licencias médicas requieren un archivo adjunto', code: 'BAD_REQUEST' } };
@@ -72,7 +72,7 @@ export async function createLeave(employeeId: string, input: CreateLeaveInput, f
         const overlap = await leaveRepo.findOne({
             where: {
                 employee: { id: employeeId },
-                status: EstadoSolicitud.APROBADA,
+                status: estadoSolicitud.APROBADA,
                 startDate: LessThanOrEqual(input.endDate),
                 endDate: MoreThanOrEqual(input.startDate),
             },
@@ -90,7 +90,7 @@ export async function createLeave(employeeId: string, input: CreateLeaveInput, f
             startDate: input.startDate,
             endDate: input.endDate,
             reason: input.reason,
-            status: EstadoSolicitud.PENDIENTE,
+            status: estadoSolicitud.PENDIENTE,
             attachedFileURL: filename ?? null,
         });
 
@@ -165,18 +165,18 @@ export async function reviewLeave(id: string, input: ReviewLeaveInput, reviewerB
             return { ok: false, error: { message: 'Solicitud no encontrada', code: 'NOT_FOUND' } };
         }
 
-        if (leave.status !== EstadoSolicitud.PENDIENTE) {
+        if (leave.status !== estadoSolicitud.PENDIENTE) {
             await queryRunner.rollbackTransaction();
             await queryRunner.release();
             return { ok: false, error: { message: 'Solo se pueden revisar solicitudes pendientes', code: 'CONFLICT' } };
         }
 
-        if (input.status === EstadoSolicitud.APROBADA) {
+        if (input.status === estadoSolicitud.APROBADA) {
             /* Verificar solapamiento al momento de aprobar */
             const overlap = await leaveRepo.findOne({
                 where: {
                     employee: { id: leave.employee.id },
-                    status: EstadoSolicitud.APROBADA,
+                    status: estadoSolicitud.APROBADA,
                     startDate: LessThanOrEqual(leave.endDate),
                     endDate: MoreThanOrEqual(leave.startDate),
                 },
@@ -199,7 +199,7 @@ export async function reviewLeave(id: string, input: ReviewLeaveInput, reviewerB
             }
         }
 
-        leave.status = input.status === EstadoSolicitud.APROBADA ? EstadoSolicitud.APROBADA : EstadoSolicitud.RECHAZADA;
+        leave.status = input.status === estadoSolicitud.APROBADA ? estadoSolicitud.APROBADA : estadoSolicitud.RECHAZADA;
         leave.comments = input.comments ?? null;
         leave.reviewedBy = reviewerBy;
 
@@ -215,7 +215,7 @@ export async function reviewLeave(id: string, input: ReviewLeaveInput, reviewerB
             const startDate = leave.startDate.toISOString().split('T')[0]!;
             const endDate = leave.endDate.toISOString().split('T')[0]!;
 
-            if (leave.status === EstadoSolicitud.APROBADA) {
+            if (leave.status === estadoSolicitud.APROBADA) {
                 await sendEmail({
                     to: leave.employee.email,
                     subject: 'Tu solicitud ha sido aprobada',
@@ -261,13 +261,13 @@ export async function cancelLeave(id: string): Promise<ServiceResponse<Leave>> {
             return { ok: false, error: { message: 'Solicitud no encontrada', code: 'NOT_FOUND' } };
         }
 
-        if (leave.status !== EstadoSolicitud.PENDIENTE) {
+        if (leave.status !== estadoSolicitud.PENDIENTE) {
             await queryRunner.rollbackTransaction();
             await queryRunner.release();
             return { ok: false, error: { message: 'Solo se pueden cancelar solicitudes pendientes', code: 'CONFLICT' } };
         }
 
-        leave.status = EstadoSolicitud.CANCELADA;
+        leave.status = estadoSolicitud.CANCELADA;
         await leaveRepo.save(leave);
 
         await queryRunner.commitTransaction();
@@ -302,7 +302,7 @@ export async function processLeaveCron(): Promise<ServiceResponse<{ activated: n
         /* Activar - Licencias aprobadas cuyo inicio sea hoy */
         const toActivate = await leaveRepo.find({
             where: {
-                status: EstadoSolicitud.APROBADA,
+                status: estadoSolicitud.APROBADA,
                 startDate: today,
             },
             relations: ['employee', 'employee.profile'],
@@ -312,7 +312,7 @@ export async function processLeaveCron(): Promise<ServiceResponse<{ activated: n
             const profile = leave.employee.profile;
             if (!profile || profile.status === estadoLaboral.DESVINCULADO) continue;
 
-            const newStatus = leave.type === TipoSolicitud.LICENCIA ? estadoLaboral.LICENCIA : estadoLaboral.PERMISO;
+            const newStatus = leave.type === tipoSolicitud.LICENCIA ? estadoLaboral.LICENCIA : estadoLaboral.PERMISO;
 
             profile.status = newStatus;
             await profileRepo.save(profile);
@@ -332,7 +332,7 @@ export async function processLeaveCron(): Promise<ServiceResponse<{ activated: n
                 leaveStartDate: leave.startDate,
                 leaveEndDate: leave.endDate,
                 leaveReason: leave.reason,
-                eventType: leave.type === TipoSolicitud.LICENCIA
+                eventType: leave.type === tipoSolicitud.LICENCIA
                     ? eventType.LICENCIA
                     : eventType.PERMISO,
                 notes: `Inicio de ${leave.type}`,
@@ -345,7 +345,7 @@ export async function processLeaveCron(): Promise<ServiceResponse<{ activated: n
         /* Vencer - Licencias aprobadas cuyo endDate ya pasó */
         const toExpire = await leaveRepo.find({
             where: {
-                status: EstadoSolicitud.APROBADA,
+                status: estadoSolicitud.APROBADA,
                 endDate: LessThan(today),
             },
             relations: ['employee', 'employee.profile'],
@@ -355,7 +355,7 @@ export async function processLeaveCron(): Promise<ServiceResponse<{ activated: n
             const profile = leave.employee.profile;
             if (!profile || profile.status === estadoLaboral.DESVINCULADO) continue;
 
-            leave.status = EstadoSolicitud.VENCIDA;
+            leave.status = estadoSolicitud.VENCIDA;
             await leaveRepo.save(leave);
 
             profile.status = estadoLaboral.ACTIVO;
@@ -376,7 +376,7 @@ export async function processLeaveCron(): Promise<ServiceResponse<{ activated: n
                 afp: profile.fondoAFP ?? 'Por definir',
                 healthInsurance: profile.previsionSalud ?? 'Por definir',
                 unemploymentInsurance: profile.seguroCesantia ?? 'Por definir',
-                eventType: leave.type === TipoSolicitud.LICENCIA
+                eventType: leave.type === tipoSolicitud.LICENCIA
                     ? eventType.LICENCIA
                     : eventType.PERMISO,
                 notes: `Fin de ${leave.type} — reintegro a actividad`,

@@ -9,15 +9,15 @@ import { encryptPassword } from "../../utils/encrypt.js";
 import { generateCorporateEmail, generateSecurePassword } from "../../helpers/corporateEmail.helper.js";
 import { sendEmail } from "../email.service.js";
 import { credentialsTemplate } from "../../templates/email/credentials.template.js";
-import { estadoLaboral } from "../../types/employeeProfile.types.js";
-import { eventType } from "../../types/employmentHistory.types.js";
+import { estadoLaboral } from "../../types/rrhh/employeeProfile.types.js";
+import { eventType } from "../../types/rrhh/employmentHistory.types.js";
 import type { ServiceResponse } from "../../types/common.types.js";
 import type {
     CreateEmployeeInput,
     EmployeeQueryParams,
     ReactivateEmployeeInput,
     UpdateEmployeeInput
-} from "../../types/employee.types.js";
+} from "../../types/rrhh/employee.types.js";
 
 function buildFullName(employee: Employee): string {
     return [employee.names, employee.paternalSurname, employee.maternalSurname].filter(Boolean).join(' ');

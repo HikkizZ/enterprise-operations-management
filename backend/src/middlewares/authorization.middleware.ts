@@ -1,9 +1,10 @@
 import type { Request, Response, NextFunction } from 'express';
 import type { RequestHandler } from 'express';
+import { userRoles, type UserRole } from '../types/user.types.js';
 
-export function verifyRole(requiredRoles: string | string[]): RequestHandler {
+export function verifyRole(requiredRoles: UserRole | UserRole[]): RequestHandler {
     return (req: Request, res: Response, next: NextFunction): void => {
-        const user = req.user as { role: string } | undefined;
+       const user = req.user as { role: UserRole } | undefined;
 
         // Check if user is authenticated
         if (!user) {
@@ -11,8 +12,8 @@ export function verifyRole(requiredRoles: string | string[]): RequestHandler {
             return;
         }
 
-        // SuperAdministrador has all permissions
-        if (user.role === 'SuperAdministrador') {
+        // SuperAdministrador and Administrador have all permissions
+        if (user.role === userRoles.SUPER_ADMINISTRADOR || user.role === userRoles.ADMINISTRADOR) {
             next();
             return;
         }

@@ -76,11 +76,15 @@ async function setupServer() {
 
         cron.schedule('1 0 * * *', async () => {
             console.log('⏰ Running leave cron job...');
-            const result = await processLeaveCron();
-            if (result.success) {
-                console.log(`✅ Leave cron done — activated: ${result.data.activated}, expired: ${result.data.expired}`);
-            } else {
-                console.error('❌ Leave cron error:', result.error?.message);
+            try {
+                const result = await processLeaveCron();
+                if (result.ok) {
+                    console.log(`✅ Leave cron done — activated: ${result.data.activated}, expired: ${result.data.expired}`);
+                } else {
+                    console.error('❌ Leave cron error:', result.error?.message);
+                }
+            } catch (error) {
+                console.error('❌ Leave cron unexpected error:', error);
             }
         });
 

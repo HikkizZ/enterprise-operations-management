@@ -7,6 +7,7 @@ import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
 import passport from 'passport';
 
+import cron from 'node-cron';
 import indexRoutes from './routes/index.routes.js';
 import { initializeDB } from './config/configDB.js';
 import { initialSetup } from './utils/initialSetup.js';
@@ -14,7 +15,7 @@ import { configEnv } from './config/configEnv.js';
 import { registerPassportJWTStrategy } from './auth/passport.auth.js';
 import { errorHandler } from './middlewares/errorHandler.middleware.js';
 import { ensureUploadDirectories } from './services/file.service.js';
-
+import { processLeaveCron } from './services/rrhh/leave.service.js';
 /* Exportar la aplicación y servidor de pruebas */
 let server: any;
 
@@ -72,6 +73,16 @@ async function setupServer() {
         await initializeDB();
         await initialSetup();
         await ensureUploadDirectories();
+
+        cron.schedule('1 0 * * *', async () => {
+            console.log('⏰ Running leave cron job...');
+            const result = await processLeaveCron();
+            if (result.success) {
+                console.log(`✅ Leave cron done — activated: ${result.data.activated}, expired: ${result.data.expired}`);
+            } else {
+                console.error('❌ Leave cron error:', result.error?.message);
+            }
+        });
 
         /* Create Express App */
         const app = createApp();

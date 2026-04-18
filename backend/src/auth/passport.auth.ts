@@ -22,7 +22,8 @@ export const registerPassportJWTStrategy = () => {
             try {
                 const userRepository = AppDataSource.getRepository(User);
                 const user = await userRepository.findOne({
-                    where: { corporateEmail: jwtPayload.corporateEmail }
+                    where: { corporateEmail: jwtPayload.corporateEmail },
+                    relations: ['employee'],
                 });
 
                 if (!user) return done(null, false);

@@ -87,6 +87,26 @@ export const updateEmployeeSchema = z.object({
     }
 });
 
+export const updateEmployeeSelfSchema = z.object({
+    email: z.email('El correo personal debe ser un correo electrónico válido').optional(),
+    phoneNumber: z.union([phoneSchema, z.null()]).optional(),
+    emergencyContact: z.union([phoneSchema, z.null()]).optional(),
+    address: z.union([
+        z.string()
+            .min(5, 'La dirección debe tener al menos 5 caracteres')
+            .max(255, 'La dirección no puede exceder los 255 caracteres'),
+        z.null(),
+    ]).optional(),
+}).superRefine((data, ctx) => {
+    const hasAtLeastOne = Object.values(data).some(v => v !== undefined);
+    if (!hasAtLeastOne) {
+        ctx.addIssue({
+            code: 'custom',
+            message: 'Se debe proporcionar al menos un campo para actualizar',
+        });
+    }
+});
+
 /* Terminate */
 export const terminateEmployeeSchema = z.object({
     reason: z.string()
@@ -116,5 +136,6 @@ export type EmployeeIdParam = z.infer<typeof employeeIdParamSchema>;
 export type EmployeeQueryInput = z.infer<typeof employeeQuerySchema>;
 export type CreateEmployeeBody = z.infer<typeof createEmployeeSchema>;
 export type UpdateEmployeeBody = z.infer<typeof updateEmployeeSchema>;
+export type UpdateEmployeeSelfBody = z.infer<typeof updateEmployeeSelfSchema>;
 export type TerminateEmployeeBody = z.infer<typeof terminateEmployeeSchema>;
 export type ReactivateEmployeeBody = z.infer<typeof reactivateEmployeeSchema>;

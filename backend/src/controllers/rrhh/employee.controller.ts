@@ -13,6 +13,7 @@ import {
     employeeQuerySchema,
     createEmployeeSchema,
     updateEmployeeSchema,
+    updateEmployeeSelfSchema,
     terminateEmployeeSchema,
     reactivateEmployeeSchema
 } from '../../validations/rrhh/employee.validation.js';
@@ -104,14 +105,18 @@ export const updateEmployeeController = async (req: Request, res: Response): Pro
             });
         }
 
-        const bodyResult = updateEmployeeSchema.safeParse(req.body);
+        const requester = req.user as User & { employee: { id: string } | null };
+        const isSelf = requester.employee?.id === paramResult.data.id;
+        const schema = isSelf ? updateEmployeeSelfSchema : updateEmployeeSchema;
+
+        const bodyResult = schema.safeParse(req.body);
         if (!bodyResult.success) {
             return handleErrorClient(res, 400, 'Datos de actualización inválidos', {
                 details: bodyResult.error.issues.map(i => i.message)
             });
         }
 
-        const requester = req.user as User;
+        
         const response = await updateEmployee(paramResult.data.id, bodyResult.data, requester);
         if (!response.ok) {
             const status = response.error.code ? errorStatusMap[response.error.code] : 400;

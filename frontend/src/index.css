@@ -140,3 +140,61 @@
  @utility brand-gradient {
     background: linear-gradient(135deg, var(--gradient-from), var(--gradient-to));
  }
+
+ @theme {
+    --animate-travel-right: travel-right 12s linear infinite;
+    --animate-travel-left: travel-left 10s linear infinite;
+    --animate-travel-diagonal: travel-diagonal 15s linear infinite;
+    --animate-float-slow: float-slow 8s ease-in-out infinite;
+    --animate-float-medium: float-medium 5s ease-in-out infinite;
+    --animate-float-fast: float-fast 3s ease-in-out infinite;
+    --animate-glow-pulse: glow-pulse 3s ease-in-out infinite;
+    --animate-ping-slow: ping-slow 3s ease-out infinite;
+  }
+
+  @keyframes travel-right {
+    0%   { transform: translateX(-150px); opacity: 0; }
+    5%   { opacity: 1; }
+    95%  { opacity: 1; }
+    100% { transform: translateX(100vw); opacity: 0; }
+  }
+
+  @keyframes travel-left {
+    0%   { transform: translateX(150px); opacity: 0; }
+    5%   { opacity: 1; }
+    95%  { opacity: 1; }
+    100% { transform: translateX(-100vw); opacity: 0; }
+  }
+
+  @keyframes travel-diagonal {
+    0%   { transform: translateY(0) translateX(0); opacity: 0; }
+    5%   { opacity: 1; }
+    95%  { opacity: 1; }
+    100% { transform: translateY(-80vh) translateX(30vw); opacity: 0; }
+  }
+
+  @keyframes float-slow {
+    0%, 100% { transform: translateY(0px) translateX(0px); }
+    33%  { transform: translateY(-10px) translateX(5px); }
+    66%  { transform: translateY(5px) translateX(-7px); }
+  }
+
+  @keyframes float-medium {
+    0%, 100% { transform: translateY(0px) translateX(0px); }
+    50%  { transform: translateY(-14px) translateX(7px); }
+  }
+
+  @keyframes float-fast {
+    0%, 100% { transform: translateY(0px); }
+    50%  { transform: translateY(-8px); }
+  }
+
+  @keyframes glow-pulse {
+    0%, 100% { opacity: 1; }
+    50%  { opacity: 0.3; }
+  }
+
+  @keyframes ping-slow {
+    0%   { transform: scale(1); opacity: 0.6; }
+    100% { transform: scale(2.5); opacity: 0; }
+  }

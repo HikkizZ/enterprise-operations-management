@@ -1,8 +1,10 @@
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useNavigate } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useAuth } from '@/context/AuthContext';
 import PasswordInput from './PasswordInput';
 import LoginButton from './LoginButton';
 
@@ -14,12 +16,21 @@ const loginSchema = z.object({
 type LoginFormData = z.infer<typeof loginSchema>;
 
 export default function LoginForm() {
-    const { register, handleSubmit, formState: { errors } } = useForm<LoginFormData>({
+    const { login } = useAuth();
+    const navigate = useNavigate();
+
+    const { register, handleSubmit, setError, formState: { errors, isSubmitting } } = useForm<LoginFormData>({
         resolver: zodResolver(loginSchema),
     });
 
-    const onSubmit = (data: LoginFormData) => {
-        console.log('Datos del formulario:', data);
+    const onSubmit = async (data: LoginFormData) => {
+        try {
+            await login(data.email, data.password);
+            navigate('/dashboard');
+        } catch (err) {
+            const message = err instanceof Error ? err.message : 'Error al iniciar sesión';
+            setError('root', { message });
+        }
     }
 
     return (
@@ -39,7 +50,8 @@ export default function LoginForm() {
                 <PasswordInput registration={register('password')} />
                 {errors.password && (<p className="text-sm text-destructive">{errors.password.message}</p>)}
             </div>
-            <LoginButton />
+            {errors.root && (<p className="text-sm text-destructive text-center">{errors.root.message}</p>)}
+            <LoginButton isLoading={isSubmitting} />
         </form>
     )
 }

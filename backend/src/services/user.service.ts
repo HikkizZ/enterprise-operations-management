@@ -6,6 +6,7 @@ import type { ServiceResponse } from '../types/common.types.js';
 import { Not, ILike } from 'typeorm';
 import type { FindOptionsWhere } from 'typeorm';
 import { cleanRut } from 'rut-kit';
+import { userRoles, type UserRole } from '../types/user.types.js';
 
 /* Buscar usuarios con filtro */
 export async function getUsersService(query: UserQueryParams): Promise<ServiceResponse<SafeUser[]>> {
@@ -17,7 +18,7 @@ export async function getUsersService(query: UserQueryParams): Promise<ServiceRe
 
             const users = await userRepository.createQueryBuilder('user')
                 .where(`REPLACE(REPLACE(user.rut, '.', ''), '-', '') = :cleanRut`, { cleanRut: cleanRutValue })
-                .andWhere("user.role != :superAdminRole", { superAdminRole: 'SuperAdministrador' })
+                .andWhere("user.role != :superAdminRole", { superAdminRole: userRoles.SUPER_ADMINISTRADOR })
                 .getMany();
 
             if (!users.length) return { ok: true, data: [] };
@@ -26,7 +27,7 @@ export async function getUsersService(query: UserQueryParams): Promise<ServiceRe
             return { ok: true, data: usersData };
         }
 
-        const whereClause: FindOptionsWhere<User> = { role: Not('SuperAdministrador') };
+        const whereClause: FindOptionsWhere<User> = { role: Not(userRoles.SUPER_ADMINISTRADOR) };
 
         if (query.id) whereClause.id = query.id;
 
@@ -104,13 +105,13 @@ export const updateUserService = async (
 
         if (!user) return { ok: false, error: { message: 'Usuario no encontrado', code: 'NOT_FOUND' } };
 
-        if (user.role === 'SuperAdministrador') {
-            return { ok: false, error: { message: 'No se puede modificar un usuario con rol SuperAdministrador', code: 'FORBIDDEN' } };
+        if (user.role === userRoles.SUPER_ADMINISTRADOR) {
+            return { ok: false, error: { message: 'No se puede modificar un usuario con rol Super Administrador', code: 'FORBIDDEN' } };
         }
 
         /* Permisos */
         const isSelf = requester.id === user.id;
-        const allowedRoles = ['SuperAdministrador', 'Administrador', 'RecursosHumanos'];
+        const allowedRoles: UserRole[] = [userRoles.SUPER_ADMINISTRADOR, userRoles.ADMINISTRADOR, userRoles.RECURSOS_HUMANOS];
 
         /* Si es el propio usuario, solo puede modificar su password */
         if (isSelf) {
@@ -132,8 +133,8 @@ export const updateUserService = async (
         }
 
         /* No se puede cambiar a SuperAdministrador */
-        if (cleanedBody.role === 'SuperAdministrador') {
-            return { ok: false, error: { message: 'No se puede cambiar un usuario a SuperAdministrador.', code: 'FORBIDDEN' } };
+        if (cleanedBody.role === userRoles.SUPER_ADMINISTRADOR) {
+            return { ok: false, error: { message: 'No se puede cambiar un usuario a Super Administrador.', code: 'FORBIDDEN' } };
         }
 
         /* Solo se permite cambiar password y/o role (según permisos) */

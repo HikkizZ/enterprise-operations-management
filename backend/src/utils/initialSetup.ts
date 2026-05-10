@@ -2,13 +2,14 @@ import { AppDataSource } from "../config/configDB.js";
 import { User } from "../entity/user.entity.js";
 import { encryptPassword } from "./encrypt.js";
 import { configEnv } from "../config/configEnv.js";
+import { userRoles } from "../types/user.types.js";
 
 export async function initialSetup(): Promise<void> {
     try {
         const userRepository = AppDataSource.getRepository(User);
 
         const existingSuperAdmin = await userRepository.findOne({ 
-            where: { role: 'SuperAdministrador' },
+            where: { role: userRoles.SUPER_ADMINISTRADOR },
          });
 
          if (!existingSuperAdmin) {
@@ -16,7 +17,7 @@ export async function initialSetup(): Promise<void> {
                 name: configEnv.auth.superAdmin.name,
                 corporateEmail: configEnv.auth.superAdmin.email,
                 password: await encryptPassword(configEnv.auth.superAdmin.password),
-                role: 'SuperAdministrador',
+                role: userRoles.SUPER_ADMINISTRADOR,
                 rut: null,
                 accountStatus: 'Activa',
             });

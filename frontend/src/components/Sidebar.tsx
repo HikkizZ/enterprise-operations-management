@@ -1,11 +1,11 @@
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, Users, FileText, UserCog, LogOut, Cog } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { useAuth } from '@/context/AuthContext';
 import { userRoles, type UserRole } from '@/types/auth.types';
+import UserMenu from '@/components/UserMenu';
 
 interface NavItem {
     name: string;
@@ -18,12 +18,10 @@ const navigation: NavItem[] = [
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
     { name: 'Empleados', href: '/employees', icon: Users, roles: [userRoles.RECURSOS_HUMANOS, userRoles.GERENCIA] },
     { name: 'Licencias', href: '/leaves', icon: FileText, roles: [userRoles.RECURSOS_HUMANOS, userRoles.GERENCIA] },
-    { name: 'Usuarios', href: '/users', icon: UserCog, roles: [userRoles.SUPER_ADMINISTRADOR, userRoles.ADMINISTRADOR] },
+    {
+        name: 'Usuarios', href: '/users', icon: UserCog, roles: [userRoles.SUPER_ADMINISTRADOR, userRoles.ADMINISTRADOR]
+    },
 ];
-
-function getInitials(name: string): string {
-    return name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
-}
 
 export default function Sidebar() {
     const location = useLocation();
@@ -80,22 +78,12 @@ export default function Sidebar() {
 
             <Separator />
 
-            <div className="p-4">
-                <div className="flex items-center gap-3">
-                    <Avatar className="size-10">
-                        <AvatarFallback className="bg-primary/10 text-primary font-semibold">
-                            {user ? getInitials(user.name) : '?'}
-                        </AvatarFallback>
-                    </Avatar>
-                    <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-medium text-foreground">{user?.name}</p>
-                        <p className="truncate text-xs text-muted-foreground">{user?.role}</p>
-                    </div>
-                </div>
+            <div className="p-4 space-y-2">
+                <UserMenu />
                 <Button
                     variant="ghost"
                     onClick={handleLogout}
-                    className="mt-3 w-full justify-start gap-2 text-muted-foreground hover:text-foreground"
+                    className="w-full justify-start gap-2 text-muted-foreground hover:text-foreground"
                 >
                     <LogOut className="size-4" />
                     Cerrar sesión

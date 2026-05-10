@@ -1,8 +1,8 @@
 export const userRoles = {
-    SUPER_ADMINISTRADOR: 'SuperAdministrador',
+    SUPER_ADMINISTRADOR: 'Super Administrador',
     ADMINISTRADOR: 'Administrador',
     USUARIO: 'Usuario',
-    RECURSOS_HUMANOS: 'RecursosHumanos',
+    RECURSOS_HUMANOS: 'Recursos Humanos',
     GERENCIA: 'Gerencia',
     VENTAS: 'Ventas',
     ARRIENDO: 'Arriendo',

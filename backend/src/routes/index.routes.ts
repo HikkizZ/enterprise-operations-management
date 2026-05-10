@@ -6,6 +6,8 @@ import employeeRoutes from './rrhh/employee.routes.js';
 import employeeProfileRoutes from './rrhh/employeeProfile.routes.js';
 import employmentHistoryRoutes from './rrhh/employmentHistory.routes.js';
 import leaveRoutes from './rrhh/leave.routes.js';
+/* Importar rutas de dashboard */
+import dashboardRoutes from './dashboard.routes.js';
 
 const router: Router = Router()
 
@@ -24,5 +26,6 @@ router.use('/employees', employeeRoutes);
 router.use('/employees', employeeProfileRoutes);
 router.use('/employees', employmentHistoryRoutes);
 router.use('/leaves', leaveRoutes);
+router.use('/dashboard', dashboardRoutes);
 
 export default router;

@@ -1,5 +1,5 @@
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Users, FileText, UserCog, LogOut, Cog } from 'lucide-react';
+import { LayoutDashboard, Users, FileText, UserCog, LogOut } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
@@ -43,8 +43,8 @@ export default function Sidebar() {
     return (
         <aside className="sticky top-0 flex h-screen w-64 flex-col border-r border-border bg-background">
             <div className="flex h-16 items-center gap-3 px-6">
-                <div className="flex size-9 items-center justify-center rounded-lg brand-gradient">
-                    <Cog className="size-5 text-white" />
+                <div>
+                    <img src="/favicon.svg" alt="EOMS" className="size-9" />
                 </div>
                 <div>
                     <h1 className="text-lg font-bold tracking-tight text-foreground">EOMS</h1>

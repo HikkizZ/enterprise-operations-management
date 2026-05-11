@@ -53,7 +53,7 @@ export default function HistoryTab({ employeeId }: HistoryTabProps) {
                             return (
                                 <div key={entry.id} className="relative flex gap-4 pb-8 last:pb-0">
                                     {!isLast && (
-                                        <div className="absolute left-[15px] top-8 h-full w-px bg-border" />
+                                        <div className="absolute left-3.75 top-8 h-full w-px bg-border" />
                                     )}
                                     <div className="relative z-10 flex size-8 shrink-0 items-center justify-center rounded-full border border-border bg-background">
                                         <Icon className="size-4 text-primary" />

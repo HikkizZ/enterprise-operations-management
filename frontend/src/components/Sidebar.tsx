@@ -54,7 +54,9 @@ export default function Sidebar() {
 
             <nav className="flex-1 space-y-1 px-3 py-4">
                 {visibleNav.map((item) => {
-                    const isActive = location.pathname === item.href;
+                    const isActive = item.href === '/dashboard'
+                        ? location.pathname === item.href
+                        : location.pathname.startsWith(item.href);
                     return (
                         <NavLink
                             key={item.name}

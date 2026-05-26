@@ -1,35 +1,31 @@
-import { Briefcase, Building2, Wallet, Shield, Calendar } from 'lucide-react';
+import { Briefcase, Building2, Wallet, Shield, Calendar, Heart } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
-import type { EmployeeResponse } from '@/types/employee.types';
+import { Separator } from '@/components/ui/separator';
+import type { EmployeeResponse, WorkFormData } from '@/types/employee.types';
+import { tipoContrato, tipoJornada, fondoAFP, previsionSalud, seguroCesantia } from '@/types/employee.types';
 import { getStatusBadge } from '@/utils/employeeUtils';
+import { EditableTextField, EditableSelectField, ReadOnlyField } from './EditableFields';
 
-function InfoField({ label, value, mono, icon }: {
-    label: string;
-    value: string | null | undefined;
-    mono?: boolean;
-    icon?: React.ReactNode;
-}) {
-    return (
-        <div className="space-y-1">
-            <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">{label}</p>
-            <div className="flex items-center gap-2">
-                {icon}
-                <p className={cn('text-sm', mono && 'font-mono', value ? 'text-foreground' : 'text-muted-foreground')}>
-                    {value ?? '—'}
-                </p>
-            </div>
-        </div>
-    );
-}
+const contratoOptions = Object.values(tipoContrato);
+const jornadaOptions = Object.values(tipoJornada);
+const afpOptions = Object.values(fondoAFP);
+const saludOptions = Object.values(previsionSalud);
+const cesantiaOptions = Object.values(seguroCesantia);
 
 interface WorkProfileTabProps {
     employee: EmployeeResponse;
+    isEditing: boolean;
+    data: WorkFormData;
+    onChange: (field: keyof WorkFormData, value: string) => void;
 }
 
-export default function WorkProfileTab({ employee }: WorkProfileTabProps) {
+function formatDate(dateStr: string | null | undefined): string {
+    if (!dateStr) return '';
+    return new Date(dateStr).toLocaleDateString('es-CL', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+
+export default function WorkProfileTab({ employee, isEditing, data, onChange }: WorkProfileTabProps) {
     const profile = employee.profile;
 
     if (!profile) {
@@ -50,6 +46,7 @@ export default function WorkProfileTab({ employee }: WorkProfileTabProps) {
                 <CardTitle className="text-base font-semibold flex items-center gap-2">
                     <Briefcase className="size-4 text-primary" />
                     Información Laboral
+                    {isEditing && <Badge variant="outline" className="ml-2 text-xs">Editando</Badge>}
                 </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -61,53 +58,91 @@ export default function WorkProfileTab({ employee }: WorkProfileTabProps) {
                 <Separator />
 
                 <div className="grid gap-6 sm:grid-cols-2">
-                    <InfoField label="Cargo" value={profile.jobTitle} />
-                    <InfoField
+                    <EditableTextField
+                        label="Cargo"
+                        value={data.jobTitle}
+                        isEditing={isEditing}
+                        onChange={(v) => onChange('jobTitle', v)}
+                        icon={Briefcase}
+                    />
+                    <EditableTextField
                         label="Área"
-                        value={profile.area}
-                        icon={<Building2 className="size-4 text-muted-foreground shrink-0" />}
+                        value={data.area}
+                        isEditing={isEditing}
+                        onChange={(v) => onChange('area', v)}
+                        icon={Building2}
                     />
-                    <div className="space-y-1">
-                        <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Tipo de contrato</p>
-                        {profile.contractType
-                            ? <Badge variant="outline" className="font-medium">{profile.contractType}</Badge>
-                            : <p className="text-sm text-muted-foreground">—</p>
-                        }
-                    </div>
-                    <InfoField label="Jornada" value={profile.employmentType} />
-                    <InfoField
+                </div>
+
+                <div className="grid gap-6 sm:grid-cols-3">
+                    <EditableSelectField
+                        label="Tipo de contrato"
+                        value={data.contractType}
+                        isEditing={isEditing}
+                        onChange={(v) => onChange('contractType', v)}
+                        options={contratoOptions}
+                    />
+                    <EditableSelectField
+                        label="Jornada"
+                        value={data.employmentType}
+                        isEditing={isEditing}
+                        onChange={(v) => onChange('employmentType', v)}
+                        options={jornadaOptions}
+                    />
+                    <EditableTextField
                         label="Sueldo base"
-                        value={profile.baseSalary != null ? `$${profile.baseSalary.toLocaleString('es-CL')}` : null}
-                        icon={<Wallet className="size-4 text-muted-foreground shrink-0" />}
+                        value={data.baseSalary}
+                        displayValue={data.baseSalary ? `$${Number(data.baseSalary).toLocaleString('es-CL')}` : ''}
+                        isEditing={isEditing}
+                        onChange={(v) => onChange('baseSalary', v)}
+                        type="number"
+                        icon={Wallet}
                     />
                 </div>
 
                 <Separator />
 
-                <div className="grid gap-6 sm:grid-cols-2">
-                    <InfoField
+                <div className="grid gap-6 sm:grid-cols-3">
+                    <EditableSelectField
                         label="AFP"
-                        value={profile.fondoAFP}
-                        icon={<Shield className="size-4 text-muted-foreground shrink-0" />}
+                        value={data.fondoAFP}
+                        isEditing={isEditing}
+                        onChange={(v) => onChange('fondoAFP', v)}
+                        options={afpOptions}
+                        icon={Shield}
                     />
-                    <InfoField label="Salud" value={profile.previsionSalud} />
-                    <InfoField label="Seguro de cesantía" value={profile.seguroCesantia} />
+                    <EditableSelectField
+                        label="Previsión de salud"
+                        value={data.previsionSalud}
+                        isEditing={isEditing}
+                        onChange={(v) => onChange('previsionSalud', v)}
+                        options={saludOptions}
+                        icon={Heart}
+                    />
+                    <EditableSelectField
+                        label="Seguro de cesantía"
+                        value={data.seguroCesantia}
+                        isEditing={isEditing}
+                        onChange={(v) => onChange('seguroCesantia', v)}
+                        options={cesantiaOptions}
+                        icon={Shield}
+                    />
                 </div>
 
                 <Separator />
 
                 <div className="grid gap-6 sm:grid-cols-2">
-                    <InfoField
+                    <ReadOnlyField
                         label="Inicio del contrato"
-                        value={profile.startDateContract ? new Date(profile.startDateContract).toLocaleDateString('es-CL') : null}
-                        icon={<Calendar className="size-4 text-muted-foreground shrink-0" />}
+                        value={formatDate(profile.startDateContract)}
+                        icon={Calendar}
                     />
-                    <InfoField
+                    <ReadOnlyField
                         label="Término del contrato"
                         value={profile.endDateContract
-                            ? new Date(profile.endDateContract).toLocaleDateString('es-CL')
-                            : 'No aplica (contrato indefinido)'}
-                        icon={<Calendar className="size-4 text-muted-foreground shrink-0" />}
+                            ? formatDate(profile.endDateContract)
+                            : 'No aplica (indefinido)'}
+                        icon={Calendar}
                     />
                 </div>
             </CardContent>

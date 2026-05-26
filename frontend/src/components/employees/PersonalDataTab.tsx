@@ -1,91 +1,112 @@
 import { Mail, Phone, MapPin, Calendar, User } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { cn } from '@/lib/utils';
-import type { EmployeeResponse } from '@/types/employee.types';
-
-function InfoField({ label, value, mono, icon }: {
-    label: string;
-    value: string | null | undefined;
-    mono?: boolean;
-    icon?: React.ReactNode;
-}) {
-    return (
-        <div className="space-y-1">
-            <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">{label}</p>
-            <div className="flex items-center gap-2">
-                {icon}
-                <p className={cn('text-sm', mono && 'font-mono', value ? 'text-foreground' : 'text-muted-foreground')}>
-                    {value ?? '—'}
-                </p>
-            </div>
-        </div>
-    );
-}
+import type { EmployeeResponse, PersonalFormData } from '@/types/employee.types';
+import { EditableTextField, ReadOnlyField } from './EditableFields';
 
 interface PersonalDataTabProps {
     employee: EmployeeResponse;
+    isEditing: boolean;
+    data: PersonalFormData;
+    onChange: (field: keyof PersonalFormData, value: string) => void;
 }
 
-export default function PersonalDataTab({ employee }: PersonalDataTabProps) {
+function formatDate(dateStr: string | null | undefined): string {
+    if (!dateStr) return '';
+    return new Date(dateStr).toLocaleDateString('es-CL', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+
+export default function PersonalDataTab({ employee, isEditing, data, onChange }: PersonalDataTabProps) {
     return (
         <Card className="border border-border bg-card">
             <CardHeader>
                 <CardTitle className="text-base font-semibold flex items-center gap-2">
                     <User className="size-4 text-primary" />
                     Información Personal
+                    {isEditing && <Badge variant="outline" className="ml-2 text-xs">Editando</Badge>}
                 </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
                 <div className="grid gap-6 sm:grid-cols-2">
-                    <InfoField label="Nombres" value={employee.names} />
-                    <InfoField label="Apellido paterno" value={employee.paternalSurname} />
-                    <InfoField label="Apellido materno" value={employee.maternalSurname} />
-                    <InfoField label="RUT" value={employee.rut} mono />
+                    <EditableTextField
+                        label="Nombres"
+                        value={data.names}
+                        isEditing={isEditing}
+                        onChange={(v) => onChange('names', v)}
+                    />
+                    <EditableTextField
+                        label="Apellido paterno"
+                        value={data.paternalSurname}
+                        isEditing={isEditing}
+                        onChange={(v) => onChange('paternalSurname', v)}
+                    />
+                    <EditableTextField
+                        label="Apellido materno"
+                        value={data.maternalSurname || ''}
+                        isEditing={isEditing}
+                        onChange={(v) => onChange('maternalSurname', v)}
+                    />
+                    <ReadOnlyField label="RUT" value={employee.rut} icon={User} mono />
                 </div>
 
                 <Separator />
 
                 <div className="grid gap-6 sm:grid-cols-2">
-                    <InfoField
-                        label="Email personal"
-                        value={employee.email}
-                        icon={<Mail className="size-4 text-muted-foreground shrink-0" />}
+                    <EditableTextField
+                        label="Email Personal"
+                        value={data.email}
+                        isEditing={isEditing}
+                        onChange={(v) => onChange('email', v)}
+                        type="email"
+                        icon={Mail}
                     />
-                    <InfoField
+                    <EditableTextField
                         label="Teléfono"
-                        value={employee.phoneNumber}
+                        value={data.phoneNumber}
+                        isEditing={isEditing}
+                        onChange={(v) => onChange('phoneNumber', v)}
+                        type="tel"
+                        icon={Phone}
                         mono
-                        icon={<Phone className="size-4 text-muted-foreground shrink-0" />}
                     />
                 </div>
 
                 <Separator />
 
                 <div className="grid gap-6 sm:grid-cols-2">
-                    <InfoField
+                    <EditableTextField
                         label="Dirección"
-                        value={employee.address}
-                        icon={<MapPin className="size-4 text-muted-foreground shrink-0" />}
+                        value={data.address}
+                        isEditing={isEditing}
+                        onChange={(v) => onChange('address', v)}
+                        icon={MapPin}
                     />
-                    <InfoField
+                    <EditableTextField
                         label="Contacto de emergencia"
-                        value={employee.emergencyContact}
+                        value={data.emergencyContact}
+                        isEditing={isEditing}
+                        onChange={(v) => onChange('emergencyContact', v)}
+                        icon={Phone}
                     />
                 </div>
 
                 <Separator />
 
                 <div className="grid gap-6 sm:grid-cols-2">
-                    <InfoField
+                    <EditableTextField
                         label="Fecha de nacimiento"
-                        value={employee.birthDate ? new Date(employee.birthDate).toLocaleDateString('es-CL') : null}
-                        icon={<Calendar className="size-4 text-muted-foreground shrink-0" />}
+                        value={data.birthDate}
+                        displayValue={formatDate(data.birthDate)}
+                        isEditing={isEditing}
+                        onChange={(v) => onChange('birthDate', v)}
+                        type="date"
+                        icon={Calendar}
                     />
-                    <InfoField
+                    <ReadOnlyField
                         label="Fecha de ingreso"
-                        value={new Date(employee.hireDate).toLocaleDateString('es-CL')}
-                        icon={<Calendar className="size-4 text-muted-foreground shrink-0" />}
+                        value={formatDate(employee.hireDate)}
+                        icon={Calendar}
                     />
                 </div>
             </CardContent>

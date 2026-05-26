@@ -66,5 +66,21 @@ export const userBodySchema = z.object({
     }
 });
 
+/* Body para crear usuario administrativo (solo SuperAdmin) */
+export const createUserSchema = z.object({
+    name: z.string()
+        .min(3, 'El nombre debe tener al menos 3 caracteres')
+        .max(100, 'El nombre no debe exceder los 100 caracteres')
+        .regex(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/, 'El nombre solo puede contener letras y espacios'),
+    corporateEmail: z.email('El correo corporativo debe ser un correo electrónico válido')
+        .refine(isAllowedCorporateEmailDomain, 'El dominio del correo corporativo no es válido'),
+    password: z.string()
+        .min(8, 'La contraseña debe tener al menos 8 caracteres')
+        .max(16, 'La contraseña no debe exceder los 16 caracteres')
+        .regex(/^[A-Za-z0-9!@#$%^&*_\-\.]+$/, 'La contraseña solo puede contener letras, números y los siguientes caracteres especiales: !@#$ %^&* _ -.'),
+    role: z.literal(userRoles.ADMINISTRADOR, { message: 'Solo se puede crear un usuario con rol Administrador por esta vía' })
+});
+
 export type UserQueryInput = z.infer<typeof userQuerySchema>;
 export type UserBodyInput = z.infer<typeof userBodySchema>;
+export type CreateUserInput = z.infer<typeof createUserSchema>;

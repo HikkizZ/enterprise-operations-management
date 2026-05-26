@@ -2,9 +2,10 @@ import type { Request, Response } from "express";
 import {
     getUsersService,
     updateUserService,
+    createUserService
 } from "../services/user.service.js";
 import { handleSuccess, handleErrorClient, handleErrorServer, errorStatusMap } from "../handlers/responseHandlers.js";
-import { userQuerySchema, userBodySchema } from "../validations/user.validation.js";
+import { userQuerySchema, userBodySchema, createUserSchema } from "../validations/user.validation.js";
 import { User } from "../entity/user.entity.js";
 
 /* Controlador para obtener usuarios con o sin filtros */
@@ -72,3 +73,28 @@ export const updateUserController = async (req: Request, res: Response): Promise
         return handleErrorServer(res);
     }
 }
+
+/* Controlador para crear un nuevo usuario administrativo (solo SuperAdmin) */
+export const createUserController = async (req: Request, res: Response): Promise<Response> => {
+    try {
+        const result = createUserSchema.safeParse(req.body);
+
+        if (!result.success) {
+            return handleErrorClient(res, 400, 'Datos inválidos', {
+                details: result.error.issues.map(i => i.message)
+            });
+        }
+
+        const response = await createUserService(result.data);
+
+        if (!response.ok) {
+            const status = response.error.code ? errorStatusMap[response.error.code] : 400;
+            return handleErrorClient(res, status, response.error.message, null);
+        }
+
+        return handleSuccess(res, 201, 'Usuario creado exitosamente', response.data);
+    } catch (err) {
+        console.error('Error en createUserController:', err);
+        return handleErrorServer(res);
+    }
+};

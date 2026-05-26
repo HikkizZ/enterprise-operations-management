@@ -2,7 +2,6 @@ import type { Request, Response } from 'express';
 import { loginService } from '../services/auth.service.js';
 import { handleSuccess, handleErrorClient, handleErrorServer, errorStatusMap } from '../handlers/responseHandlers.js';
 import { loginSchema } from '../validations/auth.validation.js';
-import e from 'express';
 
 /* Login */
 export const loginController = async (req: Request, res: Response): Promise<Response> => {

@@ -37,7 +37,7 @@ export function verifySelfOrRole(requiredRoles: UserRole | UserRole[], paramName
             return;
         }
 
-        if (user.role === userRoles.SUPER_ADMINISTRADOR || user.role === userRoles.ADMINISTRADOR) {
+        if (user.role === userRoles.ADMINISTRADOR) {
             next();
             return;
         }

@@ -1,12 +1,13 @@
 import { User } from '../entity/user.entity.js';
 import { AppDataSource } from '../config/configDB.js';
-import { encryptPassword, comparePassword } from '../utils/encrypt.js';
+import { encryptPassword } from '../utils/encrypt.js';
 import type { UserQueryParams, UpdateUserData, SafeUser } from '../types/user.types.js';
 import type { ServiceResponse } from '../types/common.types.js';
 import { Not, ILike } from 'typeorm';
 import type { FindOptionsWhere } from 'typeorm';
 import { cleanRut } from 'rut-kit';
 import { userRoles, type UserRole } from '../types/user.types.js';
+import type { CreateUserInput } from '../validations/user.validation.js';
 
 /* Buscar usuarios con filtro */
 export async function getUsersService(query: UserQueryParams): Promise<ServiceResponse<SafeUser[]>> {
@@ -22,7 +23,7 @@ export async function getUsersService(query: UserQueryParams): Promise<ServiceRe
                 .getMany();
 
             if (!users.length) return { ok: true, data: [] };
-            
+
             const usersData: SafeUser[] = users.map(({ password: _p, ...user }) => user);
             return { ok: true, data: usersData };
         }
@@ -36,10 +37,10 @@ export async function getUsersService(query: UserQueryParams): Promise<ServiceRe
         if (query.name) whereClause.name = ILike(`%${query.name}%`);
 
         if (query.role) whereClause.role = query.role;
-        
-        const users = await userRepository.find({ 
+
+        const users = await userRepository.find({
             where: whereClause,
-            order: { createdAt: 'DESC' } 
+            order: { createdAt: 'DESC' }
         });
 
         const usersData: SafeUser[] = users.map(({ password: _p, ...user }) => user);
@@ -79,10 +80,10 @@ function sanitizeUserTextFields(data: UpdateUserData): UpdateUserData {
 
 /* Actualizar datos de usuario */
 export const updateUserService = async (
-    query: {id?: string | undefined, rut?: string | undefined, corporateEmail?: string | undefined},
+    query: { id?: string | undefined, rut?: string | undefined, corporateEmail?: string | undefined },
     body: UpdateUserData,
     requester: User
-    ): Promise<ServiceResponse<SafeUser>> => {
+): Promise<ServiceResponse<SafeUser>> => {
     try {
         const cleanedBody = sanitizeUserTextFields(body);
 
@@ -116,7 +117,7 @@ export const updateUserService = async (
         /* Si es el propio usuario, solo puede modificar su password */
         if (isSelf) {
             const keys = Object.keys(cleanedBody);
-        
+
             if (!cleanedBody.password || keys.length !== 1) {
                 return { ok: false, error: { message: 'No tiene permiso para modificar estos datos.', code: 'FORBIDDEN' } };
             }
@@ -158,3 +159,29 @@ export const updateUserService = async (
         return { ok: false, error: { message: 'Error interno del servidor' } };
     }
 };
+
+/* Crear usuario administrativo (solo SuperAdmin) */
+export async function createUserService(data: CreateUserInput): Promise<ServiceResponse<SafeUser>> {
+    try {
+        const repo = AppDataSource.getRepository(User);
+
+        const exists = await repo.findOneBy({ corporateEmail: data.corporateEmail });
+        if (exists) return {
+            ok: false, error: { message: 'El correo corporativo ya está en uso', code: 'CONFLICT' }
+        };
+
+        const user = repo.create({
+            name: data.name,
+            corporateEmail: data.corporateEmail,
+            password: await encryptPassword(data.password),
+            role: data.role,
+        });
+
+        const saved = await repo.save(user);
+        const { password: _p, ...userData } = saved;
+        return { ok: true, data: userData };
+    } catch (error) {
+        console.error('Error en createUserService:', error);
+        return { ok: false, error: { message: 'Error interno del servidor' } };
+    }
+}

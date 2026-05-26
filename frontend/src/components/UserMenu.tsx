@@ -5,7 +5,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/hooks/useTheme";
-import { userRoles } from "@/types/auth.types";
+import { useRole } from "@/hooks/useRole";
 
 function getInitials(name: string): string {
     return name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
@@ -17,7 +17,7 @@ export default function UserMenu() {
     const navigate = useNavigate();
     const [open, setOpen] = useState(false);
 
-    const isSuperAdmin = user?.role === userRoles.SUPER_ADMINISTRADOR;
+    const { isSuperAdmin } = useRole();
 
     return (
         <DropdownMenu open={open} onOpenChange={setOpen}>

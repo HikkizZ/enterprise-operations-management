@@ -36,7 +36,7 @@ export default function Sidebar() {
     const visibleNav = navigation.filter(item => {
         if (!item.roles) return true;
         if (!user) return false;
-        if (user.role === userRoles.SUPER_ADMINISTRADOR || user.role === userRoles.ADMINISTRADOR) return true;
+        if (user.role === userRoles.ADMINISTRADOR) return true;
         return item.roles.includes(user.role);
     });
 

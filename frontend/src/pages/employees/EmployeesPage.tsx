@@ -10,14 +10,12 @@ import { Badge } from '@/components/ui/badge';
 import { getEmployeesApi } from '@/api/employee.api';
 import { getStatusBadge, getInitials } from '@/utils/employeeUtils';
 import CreateEmployeeModal from '@/components/employees/CreateEmployeeModal';
-import { useAuth } from '@/context/AuthContext';
 import { userRoles } from '@/types/auth.types';
+import { useRole } from '@/hooks/useRole';
 
 export default function EmployeesPage() {
-    const { user } = useAuth();
+    const { can } = useRole();
     const [search, setSearch] = useState('');
-
-    const isRRHH = user?.role === userRoles.RECURSOS_HUMANOS;
 
     const { data: employees = [], isLoading, isError } = useQuery({
         queryKey: ['employees', search],
@@ -31,7 +29,7 @@ export default function EmployeesPage() {
                     <h1 className="text-2xl font-bold tracking-tight text-foreground">Empleados</h1>
                     <p className="text-sm text-muted-foreground">Gestiona el personal de la organización</p>
                 </div>
-                {isRRHH && (
+                {can([userRoles.RECURSOS_HUMANOS]) && (
                     <CreateEmployeeModal
                         trigger={
                             <Button className="gap-2">

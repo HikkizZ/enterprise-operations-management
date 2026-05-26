@@ -1,7 +1,7 @@
 import axios from 'axios';
 import apiClient from './axiosClient';
 import type { ApiSuccess } from '@/types/auth.types';
-import type { CreateEmployeeBody, CreateEmployeeResult, EmployeeResponse, EmploymentHistoryResponse } from '@/types/employee.types';
+import type { CreateEmployeeBody, CreateEmployeeResult, EmployeeResponse, EmploymentHistoryResponse, UpdateEmployeeBody, UpdateProfileBody, EmployeeProfileResponse } from '@/types/employee.types';
 
 export async function getEmployeesApi(params?: {
     page?: number;
@@ -50,5 +50,27 @@ export async function getEmployeeHistoryApi(id: string): Promise<EmploymentHisto
         if (axios.isAxiosError(err) && err.response?.data?.message)
             throw new Error(err.response.data.message as string);
         throw new Error('Error al obtener el historial laboral');
+    }
+}
+
+export async function updateEmployeeApi(id: string, body: UpdateEmployeeBody): Promise<EmployeeResponse> {
+    try {
+        const { data } = await apiClient.patch<ApiSuccess<EmployeeResponse>>(`/employees/${id}`, body);
+        return data.data;
+    } catch (err) {
+        if (axios.isAxiosError(err) && err.response?.data?.message)
+            throw new Error(err.response.data.message as string);
+        throw new Error('Error al actualizar el empleado');
+    }
+}
+
+export async function updateProfileApi(id: string, body: UpdateProfileBody): Promise<EmployeeProfileResponse> {
+    try {
+        const { data } = await apiClient.patch<ApiSuccess<EmployeeProfileResponse>>(`/employees/${id}/profile`, body);
+        return data.data;
+    } catch (err) {
+        if (axios.isAxiosError(err) && err.response?.data?.message)
+            throw new Error(err.response.data.message as string);
+        throw new Error('Error al actualizar el perfil del empleado');
     }
 }

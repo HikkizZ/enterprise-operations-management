@@ -124,3 +124,73 @@ export interface EmploymentHistoryResponse {
     registeredBy: { id: string; username: string } | null;
     createdAt: string;
 }
+
+export const fondoAFP = {
+    CAPITAL: 'Capital',
+    HABITAT: 'Habitat',
+    PROVIDA: 'Provida',
+    MODELO: 'Modelo',
+    CUPRUM: 'Cuprum',
+    PLANVITAL: 'PlanVital',
+    UNO: 'Uno',
+} as const;    
+
+export type FondoAFP = (typeof fondoAFP)[keyof typeof fondoAFP];
+
+export const previsionSalud = {
+    FONASA: 'Fonasa',
+    ISAPRE: 'Isapre',
+} as const;
+
+export type TipoPrevisionSalud = (typeof previsionSalud)[keyof typeof previsionSalud];
+
+export const seguroCesantia = {
+    SI: 'Sí',
+    NO: 'No',
+} as const;
+
+export type SeguroCesantia = (typeof seguroCesantia)[keyof typeof seguroCesantia];
+
+export type PersonalFormData = {
+    names: string;
+    paternalSurname: string;
+    maternalSurname: string;
+    birthDate: string;
+    email: string;
+    phoneNumber: string;
+    emergencyContact: string;
+    address: string;
+};
+
+export type WorkFormData = {
+    jobTitle: string;
+    area: string;
+    baseSalary: string;
+    employmentType: string;
+    contractType: string;
+    previsionSalud: string;
+    fondoAFP: string;
+    seguroCesantia: string;
+};
+
+export interface UpdateEmployeeBody {
+    names?: string;
+    paternalSurname?: string;
+    maternalSurname?: string | null;
+    birthDate?: string | null;
+    email?: string;
+    phoneNumber?: string | null;
+    emergencyContact?: string | null;
+    address?: string | null;
+};
+
+export interface UpdateProfileBody {
+    jobTitle?: string | null;
+    area?: string | null;
+    baseSalary?: number | null;
+    employmentType?: TipoJornada;
+    contractType?: TipoContrato;
+    previsionSalud?: TipoPrevisionSalud | null;
+    fondoAFP?: FondoAFP | null;
+    seguroCesantia?: SeguroCesantia | null;
+};

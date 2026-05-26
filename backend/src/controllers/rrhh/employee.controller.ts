@@ -18,6 +18,7 @@ import {
     reactivateEmployeeSchema
 } from '../../validations/rrhh/employee.validation.js';
 import { User } from  '../../entity/user.entity.js';
+import { userRoles } from '../../types/user.types.js';
 
 export const getEmployeesController = async (req: Request, res: Response): Promise<Response> => {
     try {
@@ -106,8 +107,9 @@ export const updateEmployeeController = async (req: Request, res: Response): Pro
         }
 
         const requester = req.user as User & { employee: { id: string } | null };
-        const isSelf = requester.employee?.id === paramResult.data.id;
-        const schema = isSelf ? updateEmployeeSelfSchema : updateEmployeeSchema;
+        const hasRRHHAccess = requester.role === userRoles.RECURSOS_HUMANOS || requester.role === userRoles.ADMINISTRADOR;
+
+        const schema = hasRRHHAccess ?  updateEmployeeSchema : updateEmployeeSelfSchema;
 
         const bodyResult = schema.safeParse(req.body);
         if (!bodyResult.success) {

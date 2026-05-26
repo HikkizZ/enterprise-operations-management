@@ -6,10 +6,11 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { getEmployeeByIdApi, updateEmployeeApi, updateProfileApi } from '@/api/employee.api';
-import { getInitials, getStatusBadge } from '@/utils/employeeUtils';
+import { getEmployeeByIdApi, updateEmployeeApi, updateProfileApi, updateUserRoleApi } from '@/api/employee.api';
+import { getInitials, getStatusBadge, formatPhone } from '@/utils/employeeUtils';
 import { useRole } from '@/hooks/useRole';
 import { userRoles } from '@/types/auth.types';
+import { useAuth } from '@/context/AuthContext';
 import type {
     EmployeeResponse,
     PersonalFormData,
@@ -27,12 +28,17 @@ import WorkProfileTab from '@/components/employees/WorkProfileTab';
 import HistoryTab from '@/components/employees/HistoryTab';
 import LeavesTab from '@/components/employees/LeavesTab';
 
+function toDateInput(dateStr: string | null | undefined): string {
+    if (!dateStr) return '';
+    return dateStr.slice(0, 10);
+}
+
 function buildPersonalForm(e: EmployeeResponse): PersonalFormData {
     return {
         names: e.names,
         paternalSurname: e.paternalSurname,
         maternalSurname: e.maternalSurname ?? '',
-        birthDate: e.birthDate ?? '',
+        birthDate: toDateInput(e.birthDate),
         email: e.email,
         phoneNumber: e.phoneNumber ?? '',
         emergencyContact: e.emergencyContact ?? '',
@@ -51,6 +57,8 @@ function buildWorkForm(e: EmployeeResponse): WorkFormData {
         fondoAFP: p?.fondoAFP ?? '',
         previsionSalud: p?.previsionSalud ?? '',
         seguroCesantia: p?.seguroCesantia ?? '',
+        startDateContract: toDateInput(p?.startDateContract),
+        endDateContract: toDateInput(p?.endDateContract),
     };
 }
 
@@ -74,11 +82,14 @@ export default function EmployeeDetailPage() {
 function EmployeeDetailContent({ employee, onBack }: { employee: EmployeeResponse; onBack: () => void }) {
     const queryClient = useQueryClient();
     const { can } = useRole();
+    const { user: authUser } = useAuth();
+    const isSelf = authUser?.id === employee.usuario?.id;
 
     const [isEditing, setIsEditing] = useState(false);
     const [personalData, setPersonalData] = useState<PersonalFormData>(() => buildPersonalForm(employee));
     const [workData, setWorkData] = useState<WorkFormData>(() => buildWorkForm(employee));
     const [saveError, setSaveError] = useState<string | null>(null);
+    const [selectedRole, setSelectedRole] = useState(employee.usuario?.role || '');
 
     const updateEmployeeMutation = useMutation({
         mutationFn: (body: UpdateEmployeeBody) => updateEmployeeApi(employee.id, body),
@@ -87,7 +98,11 @@ function EmployeeDetailContent({ employee, onBack }: { employee: EmployeeRespons
         mutationFn: (body: UpdateProfileBody) => updateProfileApi(employee.id, body),
     });
 
-    const isSaving = updateEmployeeMutation.isPending || updateProfileMutation.isPending;
+    const updateUserRoleMutation = useMutation({
+        mutationFn: ({ userId, role }: { userId: string; role: string }) => updateUserRoleApi(userId, role),
+    });
+
+    const isSaving = updateEmployeeMutation.isPending || updateProfileMutation.isPending || updateUserRoleMutation.isPending;
     const canEdit = can([userRoles.RECURSOS_HUMANOS]);
 
     const handlePersonalChange = (field: keyof PersonalFormData, value: string) =>
@@ -100,39 +115,60 @@ function EmployeeDetailContent({ employee, onBack }: { employee: EmployeeRespons
         setPersonalData(buildPersonalForm(employee));
         setWorkData(buildWorkForm(employee));
         setSaveError(null);
+        setSelectedRole(employee.usuario?.role || '');
         setIsEditing(false);
     };
 
     const handleSave = async () => {
         setSaveError(null);
         try {
-            const personalPayload: UpdateEmployeeBody = {
-                names: personalData.names || undefined,
-                paternalSurname: personalData.paternalSurname || undefined,
-                maternalSurname: personalData.maternalSurname || null,
-                birthDate: personalData.birthDate || null,
-                email: personalData.email || undefined,
-                phoneNumber: personalData.phoneNumber || null,
-                emergencyContact: personalData.emergencyContact || null,
-                address: personalData.address || null,
-            };
+            const tasks: Promise<unknown>[] = [];
 
-            const tasks: Promise<unknown>[] = [
-                updateEmployeeMutation.mutateAsync(personalPayload),
-            ];
+            const originalPersonal = buildPersonalForm(employee);
+            const personalChanged = (Object.keys(personalData) as (keyof PersonalFormData)[]).some(key => personalData[key] !== originalPersonal[key]);
+
+            if (personalChanged) {
+                const personalPayload: UpdateEmployeeBody = {
+                    names: personalData.names || undefined,
+                    paternalSurname: personalData.paternalSurname || undefined,
+                    maternalSurname: personalData.maternalSurname || null,
+                    birthDate: personalData.birthDate || null,
+                    email: personalData.email || undefined,
+                    phoneNumber: personalData.phoneNumber || null,
+                    emergencyContact: personalData.emergencyContact || null,
+                    address: personalData.address || null,
+                };
+                tasks.push(updateEmployeeMutation.mutateAsync(personalPayload));
+            }
 
             if (employee.profile) {
-                const profilePayload: UpdateProfileBody = {
-                    jobTitle: workData.jobTitle || undefined,
-                    area: workData.area || undefined,
-                    baseSalary: workData.baseSalary ? Number(workData.baseSalary) : undefined,
-                    employmentType: (workData.employmentType as TipoJornada) || undefined,
-                    contractType: (workData.contractType as TipoContrato) || undefined,
-                    fondoAFP: (workData.fondoAFP as FondoAFP) || null,
-                    previsionSalud: (workData.previsionSalud as TipoPrevisionSalud) || null,
-                    seguroCesantia: (workData.seguroCesantia as SeguroCesantia) || null,
-                };
-                tasks.push(updateProfileMutation.mutateAsync(profilePayload));
+                const originalWork = buildWorkForm(employee);
+                const workChanged = (Object.keys(workData) as (keyof WorkFormData)[]).some(key => workData[key] !== originalWork[key]);
+
+                if (workChanged) {
+                    const profilePayload: UpdateProfileBody = {
+                        jobTitle: workData.jobTitle || undefined,
+                        area: workData.area || undefined,
+                        baseSalary: workData.baseSalary ? Number(workData.baseSalary) : undefined,
+                        employmentType: (workData.employmentType as TipoJornada) || undefined,
+                        contractType: (workData.contractType as TipoContrato) || undefined,
+                        fondoAFP: (workData.fondoAFP as FondoAFP) || null,
+                        previsionSalud: (workData.previsionSalud as TipoPrevisionSalud) || null,
+                        seguroCesantia: (workData.seguroCesantia as SeguroCesantia) || null,
+                        startDateContract: toDateInput(workData.startDateContract),
+                        endDateContract: toDateInput(workData.endDateContract),
+                    };
+                    tasks.push(updateProfileMutation.mutateAsync(profilePayload));
+                }
+            }
+
+            if (employee.usuario && !isSelf && selectedRole && selectedRole !== employee.usuario.role) {
+                tasks.push(updateUserRoleMutation.mutateAsync({ userId: employee.usuario.id, role: selectedRole }));
+            }
+
+            if (tasks.length === 0) {
+                setIsEditing(false);
+                return;
             }
 
             await Promise.all(tasks);
@@ -217,7 +253,7 @@ function EmployeeDetailContent({ employee, onBack }: { employee: EmployeeRespons
                             {employee.phoneNumber && (
                                 <div className="flex items-center gap-2 text-muted-foreground">
                                     <Phone className="size-4" />
-                                    <span>{employee.phoneNumber}</span>
+                                    <span>{formatPhone(employee.phoneNumber)}</span>
                                 </div>
                             )}
                         </div>
@@ -262,6 +298,9 @@ function EmployeeDetailContent({ employee, onBack }: { employee: EmployeeRespons
                         isEditing={isEditing}
                         data={workData}
                         onChange={handleWorkChange}
+                        role={selectedRole}
+                        onRoleChange={setSelectedRole}
+                        canEditRole={!isSelf && !!employee.usuario}
                     />
                 </TabsContent>
                 <TabsContent value="history">

@@ -19,3 +19,13 @@ export function getStatusBadge(status: string) {
 export function getInitials(names: string, paternalSurname: string) {
     return `${names[0] ?? ''}${paternalSurname[0] ?? ''}`.toUpperCase();
 }
+
+export function formatPhone(raw: string | null | undefined): string {
+    if (!raw) return '-';
+    const digits = raw.replace(/\D/g, '');
+    if (digits.startsWith('56') && digits.length === 11)
+        return `+56 ${digits[2]} ${digits.slice(3)}`;
+    if (digits.startsWith('9') && digits.length === 9)
+        return `+56 ${digits[0]} ${digits.slice(1)}`;
+    return raw;
+}

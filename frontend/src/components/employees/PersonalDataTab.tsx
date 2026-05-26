@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import type { EmployeeResponse, PersonalFormData } from '@/types/employee.types';
 import { EditableTextField, ReadOnlyField } from './EditableFields';
+import { formatPhone } from '@/utils/employeeUtils';
 
 interface PersonalDataTabProps {
     employee: EmployeeResponse;
@@ -64,6 +65,7 @@ export default function PersonalDataTab({ employee, isEditing, data, onChange }:
                     <EditableTextField
                         label="Teléfono"
                         value={data.phoneNumber}
+                        displayValue={formatPhone(data.phoneNumber)}
                         isEditing={isEditing}
                         onChange={(v) => onChange('phoneNumber', v)}
                         type="tel"
@@ -85,9 +87,12 @@ export default function PersonalDataTab({ employee, isEditing, data, onChange }:
                     <EditableTextField
                         label="Contacto de emergencia"
                         value={data.emergencyContact}
+                        displayValue={formatPhone(data.emergencyContact)}
                         isEditing={isEditing}
                         onChange={(v) => onChange('emergencyContact', v)}
+                        type="tel"
                         icon={Phone}
+                        mono
                     />
                 </div>
 

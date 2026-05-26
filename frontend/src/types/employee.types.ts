@@ -54,6 +54,7 @@ export interface EmployeeResponse {
     hireDate: string;
     onSystem: boolean;
     profile: EmployeeProfileResponse | null;
+    usuario: { id: string; role: string } | null;
     createdAt: string;
 }
 
@@ -171,6 +172,8 @@ export type WorkFormData = {
     previsionSalud: string;
     fondoAFP: string;
     seguroCesantia: string;
+    startDateContract: string;
+    endDateContract: string;
 };
 
 export interface UpdateEmployeeBody {
@@ -193,4 +196,6 @@ export interface UpdateProfileBody {
     previsionSalud?: TipoPrevisionSalud | null;
     fondoAFP?: FondoAFP | null;
     seguroCesantia?: SeguroCesantia | null;
+    startDateContract?: string | null;
+    endDateContract?: string | null;
 };

@@ -6,18 +6,23 @@ import type { EmployeeResponse, WorkFormData } from '@/types/employee.types';
 import { tipoContrato, tipoJornada, fondoAFP, previsionSalud, seguroCesantia } from '@/types/employee.types';
 import { getStatusBadge } from '@/utils/employeeUtils';
 import { EditableTextField, EditableSelectField, ReadOnlyField } from './EditableFields';
+import { userRoles } from '@/types/auth.types';
 
 const contratoOptions = Object.values(tipoContrato);
 const jornadaOptions = Object.values(tipoJornada);
 const afpOptions = Object.values(fondoAFP);
 const saludOptions = Object.values(previsionSalud);
 const cesantiaOptions = Object.values(seguroCesantia);
+const roleOptions = Object.values(userRoles).filter(r => r !== userRoles.ADMINISTRADOR && r !== userRoles.SUPER_ADMINISTRADOR);
 
 interface WorkProfileTabProps {
     employee: EmployeeResponse;
     isEditing: boolean;
     data: WorkFormData;
     onChange: (field: keyof WorkFormData, value: string) => void;
+    role: string;
+    onRoleChange: (role: string) => void;
+    canEditRole: boolean;
 }
 
 function formatDate(dateStr: string | null | undefined): string {
@@ -25,7 +30,7 @@ function formatDate(dateStr: string | null | undefined): string {
     return new Date(dateStr).toLocaleDateString('es-CL', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
-export default function WorkProfileTab({ employee, isEditing, data, onChange }: WorkProfileTabProps) {
+export default function WorkProfileTab({ employee, isEditing, data, onChange, role, onRoleChange, canEditRole }: WorkProfileTabProps) {
     const profile = employee.profile;
 
     if (!profile) {
@@ -57,7 +62,21 @@ export default function WorkProfileTab({ employee, isEditing, data, onChange }: 
 
                 <Separator />
 
-                <div className="grid gap-6 sm:grid-cols-2">
+                <div className="grid gap-6 sm:grid-cols-3">
+                    {canEditRole ? (
+                        <EditableSelectField
+                            label="Rol del sistema"
+                            value={role}
+                            isEditing={isEditing}
+                            onChange={onRoleChange}
+                            options={roleOptions}
+                        />
+                    ) : (
+                        <ReadOnlyField
+                            label="Rol del sistema"
+                            value={role}
+                        />
+                    )}
                     <EditableTextField
                         label="Cargo"
                         value={data.jobTitle}
@@ -132,18 +151,32 @@ export default function WorkProfileTab({ employee, isEditing, data, onChange }: 
                 <Separator />
 
                 <div className="grid gap-6 sm:grid-cols-2">
-                    <ReadOnlyField
+                    <EditableTextField
                         label="Inicio del contrato"
-                        value={formatDate(profile.startDateContract)}
+                        value={data.startDateContract}
+                        displayValue={formatDate(data.startDateContract)}
+                        isEditing={isEditing}
+                        onChange={(v) => onChange('startDateContract', v)}
+                        type="date"
                         icon={Calendar}
                     />
-                    <ReadOnlyField
-                        label="Término del contrato"
-                        value={profile.endDateContract
-                            ? formatDate(profile.endDateContract)
-                            : 'No aplica (indefinido)'}
-                        icon={Calendar}
-                    />
+                    {data.contractType === tipoContrato.INDEFINIDO || !data.contractType ? (
+                        <ReadOnlyField
+                            label="Término del contrato"
+                            value="No aplica (indefinido)"
+                            icon={Calendar}
+                        />
+                    ) : (
+                        <EditableTextField
+                            label="Término del contrato"
+                            value={data.endDateContract}
+                            displayValue={formatDate(data.endDateContract)}
+                            isEditing={isEditing}
+                            onChange={(v) => onChange('endDateContract', v)}
+                            type="date"
+                            icon={Calendar}
+                        />
+                    )}
                 </div>
             </CardContent>
         </Card>

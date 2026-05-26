@@ -74,3 +74,7 @@ export async function updateProfileApi(id: string, body: UpdateProfileBody): Pro
         throw new Error('Error al actualizar el perfil del empleado');
     }
 }
+
+export async function updateUserRoleApi(userId: string, role: string): Promise<void> {
+    await apiClient.put('/users/update', { role }, { params: { id: userId } });
+}

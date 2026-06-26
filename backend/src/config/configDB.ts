@@ -1,15 +1,15 @@
 import { DataSource } from 'typeorm';
 import { configEnv } from './configEnv.js';
-import * as entityClasses from '../entity/index.js';
+import { ENTITIES } from '../entity/index.js';
 
 /* Enviroment */
 const isProduction = configEnv.nodeEnv === 'production';
 
-/* En producción se usa el glob sobre los JS compilados; en dev/test se importan
- * las clases desde el barrel para garantizar referencias únicas de clase. */
+/* En producción se usa el glob sobre los JS compilados; en dev/test se usa el
+ * array explícito para garantizar referencias únicas de clase (requerido por TypeORM). */
 const entities = isProduction
     ? ['dist/entity/**/*.js']
-    : Object.values(entityClasses);
+    : [...ENTITIES];
 
 export const AppDataSource = new DataSource({
     type: 'postgres',

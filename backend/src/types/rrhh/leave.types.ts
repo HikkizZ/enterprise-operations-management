@@ -22,7 +22,14 @@ export interface CreateLeaveInput {
     reason: string;
 };
 
+export const LEAVE_REVIEW_STATUS = {
+    APROBADA: 'Aprobada',
+    RECHAZADA: 'Rechazada',
+} as const;
+
+export type LeaveReviewStatus = typeof LEAVE_REVIEW_STATUS[keyof typeof LEAVE_REVIEW_STATUS];
+
 export interface ReviewLeaveInput {
-    status: 'Aprobada' | 'Rechazada';
+    status: LeaveReviewStatus;
     comments?: string | undefined;
 }

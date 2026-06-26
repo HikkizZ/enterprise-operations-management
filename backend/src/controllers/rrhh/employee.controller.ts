@@ -31,7 +31,8 @@ export const getEmployeesController = async (req: Request, res: Response): Promi
 
         const response = await getEmployees(result.data);
         if (!response.ok) {
-            const status = response.error.code ? errorStatusMap[response.error.code] : 400;
+            if (!response.error.code) return handleErrorServer(res, response.error.message);
+            const status = errorStatusMap[response.error.code];
             return handleErrorClient(res, status, response.error.message, null);
         }
 
@@ -57,7 +58,8 @@ export const getEmployeeByIdController = async (req: Request, res: Response): Pr
 
         const response = await getEmployeeById(paramResult.data.id);
         if (!response.ok) {
-            const status = response.error.code ? errorStatusMap[response.error.code] : 400;
+            if (!response.error.code) return handleErrorServer(res, response.error.message);
+            const status = errorStatusMap[response.error.code];
             return handleErrorClient(res, status, response.error.message, null);
         }
 
@@ -80,7 +82,8 @@ export const createEmployeeController = async (req: Request, res: Response): Pro
         const requester = req.user as User;
         const response = await createEmployee(bodyResult.data, requester);
         if (!response.ok) {
-            const status = response.error.code ? errorStatusMap[response.error.code] : 400;
+            if (!response.error.code) return handleErrorServer(res, response.error.message);
+            const status = errorStatusMap[response.error.code];
             return handleErrorClient(res, status, response.error.message, response.error.meta ?? null);
         }
 
@@ -121,7 +124,8 @@ export const updateEmployeeController = async (req: Request, res: Response): Pro
         
         const response = await updateEmployee(paramResult.data.id, bodyResult.data, requester);
         if (!response.ok) {
-            const status = response.error.code ? errorStatusMap[response.error.code] : 400;
+            if (!response.error.code) return handleErrorServer(res, response.error.message);
+            const status = errorStatusMap[response.error.code];
             return handleErrorClient(res, status, response.error.message, null);
         }
 
@@ -151,7 +155,8 @@ export const terminateEmployeeController = async (req: Request, res: Response): 
         const requester = req.user as User;
         const response = await terminateEmployee(paramResult.data.id, bodyResult.data.reason, requester);
         if (!response.ok) {
-            const status = response.error.code ? errorStatusMap[response.error.code] : 400;
+            if (!response.error.code) return handleErrorServer(res, response.error.message);
+            const status = errorStatusMap[response.error.code];
             return handleErrorClient(res, status, response.error.message, null);
         }
 
@@ -181,7 +186,8 @@ export const reactivateEmployeeController = async (req: Request, res: Response):
         const requester = req.user as User;
         const response = await reactivateEmployee(paramResult.data.id, bodyResult.data, requester);
         if (!response.ok) {
-            const status = response.error.code ? errorStatusMap[response.error.code] : 400;
+            if (!response.error.code) return handleErrorServer(res, response.error.message);
+            const status = errorStatusMap[response.error.code];
             return handleErrorClient(res, status, response.error.message, null);
         }
 

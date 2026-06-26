@@ -15,7 +15,8 @@ export const getHistoryByEmployeeIdController = async (req: Request, res: Respon
 
         const response = await getHistoryByEmployeeId(paramResult.data.id);
         if (!response.ok) {
-            const status = response.error.code ? errorStatusMap[response.error.code] : 400;
+            if (!response.error.code) return handleErrorServer(res, response.error.message);
+            const status = errorStatusMap[response.error.code];
             return handleErrorClient(res, status, response.error.message, null);
         }
 
@@ -38,7 +39,8 @@ export const getHistoryByIdController = async (req: Request, res: Response): Pro
 
         const response = await getHistoryById(paramResult.data.historyId);
         if (!response.ok) {
-            const status = response.error.code ? errorStatusMap[response.error.code] : 400;
+            if (!response.error.code) return handleErrorServer(res, response.error.message);
+            const status = errorStatusMap[response.error.code];
             return handleErrorClient(res, status, response.error.message, null);
         }
 

@@ -351,8 +351,7 @@ export async function terminateEmployee(id: string, reason: string, registeredBy
         }
 
         await queryRunner.manager.softDelete(Employee, id);
-        employee.onSystem = false;
-        await employeeRepo.save(employee);
+        await queryRunner.manager.update(Employee, id, { onSystem: false });
 
         if (employee.usuario) {
             const userRepo = queryRunner.manager.getRepository(User);
@@ -424,6 +423,7 @@ export async function reactivateEmployee(
         }
 
         await queryRunner.manager.restore(Employee, id);
+        employee.deletedAt = null;
 
         if (input.names) employee.names = input.names.trim();
         if (input.paternalSurname) employee.paternalSurname = input.paternalSurname.trim();

@@ -1,14 +1,19 @@
 import { DataSource } from 'typeorm';
 import { configEnv } from './configEnv.js';
+import { User } from '../entity/user.entity.js';
+import { Employee } from '../entity/rrhh/employee.entity.js';
+import { EmployeeProfile } from '../entity/rrhh/employeeProfile.entity.js';
+import { EmploymentHistory } from '../entity/rrhh/employmentHistory.entity.js';
+import { Leave } from '../entity/rrhh/leave.entity.js';
 
 /* Enviroment */
 const isProduction = configEnv.nodeEnv === 'production';
-const isTest = configEnv.nodeEnv === 'test';
 
-/* Dynamic route for the entities according to the environment */
-const entitiesPath = isProduction
-    ? 'dist/entity/**/*.js' // production
-    : 'src/entity/**/*.ts'; // development and test
+/* En producción se usa el glob sobre los JS compilados; en dev/test se importan
+ * las clases directamente para que el bundler/transform pueda procesarlas. */
+const entities = isProduction
+    ? ['dist/entity/**/*.js']
+    : [User, Employee, EmployeeProfile, EmploymentHistory, Leave];
 
 export const AppDataSource = new DataSource({
     type: 'postgres',
@@ -22,7 +27,7 @@ export const AppDataSource = new DataSource({
     synchronize: true,
     logging: ['error', 'warn'],
 
-    entities: [entitiesPath],
+    entities,
     migrations: [],
     subscribers: [],
 

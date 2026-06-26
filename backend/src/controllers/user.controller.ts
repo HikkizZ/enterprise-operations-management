@@ -22,7 +22,8 @@ export const getUsersController = async (req: Request, res: Response): Promise<R
         const response = await getUsersService(result.data);
 
         if (!response.ok) {
-            const status = response.error.code ? errorStatusMap[response.error.code] : 400;
+            if (!response.error.code) return handleErrorServer(res, response.error.message);
+            const status = errorStatusMap[response.error.code];
             return handleErrorClient(res, status, response.error.message, null);
         }
 
@@ -63,12 +64,13 @@ export const updateUserController = async (req: Request, res: Response): Promise
         const response = await updateUserService(queryResult.data, bodyResult.data, requester);
 
         if (!response.ok) {
-            const status = response.error.code ? errorStatusMap[response.error.code] : 400;
+            if (!response.error.code) return handleErrorServer(res, response.error.message);
+            const status = errorStatusMap[response.error.code];
             return handleErrorClient(res, status, response.error.message, null);
         }
 
         return handleSuccess(res, 200, 'Usuario actualizado exitosamente', response.data);
-    } catch (err: any) {
+    } catch (err: unknown) {
         console.error('Error en updateUserController:', err);
         return handleErrorServer(res);
     }
@@ -88,7 +90,8 @@ export const createUserController = async (req: Request, res: Response): Promise
         const response = await createUserService(result.data);
 
         if (!response.ok) {
-            const status = response.error.code ? errorStatusMap[response.error.code] : 400;
+            if (!response.error.code) return handleErrorServer(res, response.error.message);
+            const status = errorStatusMap[response.error.code];
             return handleErrorClient(res, status, response.error.message, null);
         }
 

@@ -1,7 +1,8 @@
 import { z } from 'zod';
-import { tipoSolicitud, type TipoSolicitud } from '../../types/rrhh/leave.types.js';
+import { tipoSolicitud, type TipoSolicitud, LEAVE_REVIEW_STATUS, type LeaveReviewStatus } from '../../types/rrhh/leave.types.js';
 
 const tipoSolicitudValues = Object.values(tipoSolicitud) as [TipoSolicitud, ...TipoSolicitud[]];
+const leaveReviewStatusValues = Object.values(LEAVE_REVIEW_STATUS) as [LeaveReviewStatus, ...LeaveReviewStatus[]];
 
 /* Params */
 export const leaveIdParamSchema = z.object({
@@ -28,7 +29,7 @@ export const createLeaveSchema = z.object({
 
 /* Review Leave */
 export const reviewLeaveSchema = z.object({
-    status: z.enum(['Aprobada', 'Rechazada'], { error: 'El estado debe ser Aprobada o Rechazada' }),
+    status: z.enum(leaveReviewStatusValues, { error: 'El estado debe ser Aprobada o Rechazada' }),
     comments: z.string()
         .max(500, 'Los comentarios no puede exceder los 500 caracteres')
         .optional(),

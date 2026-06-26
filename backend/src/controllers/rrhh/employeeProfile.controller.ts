@@ -21,7 +21,8 @@ export const getProfileByEmployeeIdController = async (req: Request, res: Respon
 
         const response = await getProfileByEmployeeId(paramResult.data.id);
         if (!response.ok) {
-            const status = response.error.code ? errorStatusMap[response.error.code] : 400;
+            if (!response.error.code) return handleErrorServer(res, response.error.message);
+            const status = errorStatusMap[response.error.code];
             return handleErrorClient(res, status, response.error.message, null);
         }
 
@@ -51,7 +52,8 @@ export const updateProfileController = async (req: Request, res: Response): Prom
         const requester = req.user as User;
         const response = await updateProfile(paramResult.data.id, bodyResult.data, requester);
         if (!response.ok) {
-            const status = response.error.code ? errorStatusMap[response.error.code] : 400;
+            if (!response.error.code) return handleErrorServer(res, response.error.message);
+            const status = errorStatusMap[response.error.code];
             return handleErrorClient(res, status, response.error.message, null);
         }
 
@@ -78,7 +80,8 @@ export const uploadContractController = async (req: Request, res: Response): Pro
         const requester = req.user as User;
         const response = await uploadContract(paramResult.data.id, req.file.filename, requester);
         if (!response.ok) {
-            const status = response.error.code ? errorStatusMap[response.error.code] : 400;
+            if (!response.error.code) return handleErrorServer(res, response.error.message);
+            const status = errorStatusMap[response.error.code];
             return handleErrorClient(res, status, response.error.message, null);
         }
 
@@ -101,7 +104,8 @@ export const deleteContractController = async (req: Request, res: Response): Pro
         const requester = req.user as User;
         const response = await deleteContract(paramResult.data.id, requester);
         if (!response.ok) {
-            const status = response.error.code ? errorStatusMap[response.error.code] : 400;
+            if (!response.error.code) return handleErrorServer(res, response.error.message);
+            const status = errorStatusMap[response.error.code];
             return handleErrorClient(res, status, response.error.message, null);
         }
 

@@ -17,7 +17,8 @@ export const loginController = async (req: Request, res: Response): Promise<Resp
         const response = await loginService(result.data);
 
         if (!response.ok) {
-            const status = response.error.code ? errorStatusMap[response.error.code] : 400;
+            if (!response.error.code) return handleErrorServer(res, response.error.message);
+            const status = errorStatusMap[response.error.code];
             return handleErrorClient(res, status, response.error.message, null);
         }
 

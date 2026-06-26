@@ -30,7 +30,8 @@ export const createLeaveController = async (req: Request, res: Response): Promis
         const filename = req.file?.filename;
         const response = await createLeave(paramResult.data.id, bodyResult.data, filename);
         if (!response.ok) {
-            const status = response.error.code ? errorStatusMap[response.error.code] : 400;
+            if (!response.error.code) return handleErrorServer(res, response.error.message);
+            const status = errorStatusMap[response.error.code];
             return handleErrorClient(res, status, response.error.message, null);
         }
 
@@ -52,7 +53,8 @@ export const getLeavesByEmployeeIdController = async (req: Request, res: Respons
 
         const response = await getLeavesByEmployeeId(paramResult.data.id);
         if (!response.ok) {
-            const status = response.error.code ? errorStatusMap[response.error.code] : 400;
+            if (!response.error.code) return handleErrorServer(res, response.error.message);
+            const status = errorStatusMap[response.error.code];
             return handleErrorClient(res, status, response.error.message, null);
         }
 
@@ -76,7 +78,8 @@ export const getLeaveByIdController = async (req: Request, res: Response): Promi
 
         const response = await getLeaveById(paramResult.data.leaveId);
         if (!response.ok) {
-            const status = response.error.code ? errorStatusMap[response.error.code] : 400;
+            if (!response.error.code) return handleErrorServer(res, response.error.message);
+            const status = errorStatusMap[response.error.code];
             return handleErrorClient(res, status, response.error.message, null);
         }
 
@@ -106,7 +109,8 @@ export const reviewLeaveController = async (req: Request, res: Response): Promis
         const requester = req.user as User;
         const response = await reviewLeave(paramResult.data.leaveId, bodyResult.data, requester);
         if (!response.ok) {
-            const status = response.error.code ? errorStatusMap[response.error.code] : 400;
+            if (!response.error.code) return handleErrorServer(res, response.error.message);
+            const status = errorStatusMap[response.error.code];
             return handleErrorClient(res, status, response.error.message, null);
         }
 
@@ -128,7 +132,8 @@ export const cancelLeaveController = async (req: Request, res: Response): Promis
 
         const response = await cancelLeave(paramResult.data.leaveId);
         if (!response.ok) {
-            const status = response.error.code ? errorStatusMap[response.error.code] : 400;
+            if (!response.error.code) return handleErrorServer(res, response.error.message);
+            const status = errorStatusMap[response.error.code];
             return handleErrorClient(res, status, response.error.message, null);
         }
 

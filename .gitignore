@@ -1,0 +1,103 @@
+# ========================
+# Variables de entorno
+# ========================
+.env
+.env.local
+.env.*.local
+.env.development
+.env.production
+.env.test
+
+# ========================
+# Dependencias
+# ========================
+node_modules/
+.pnp
+.pnp.js
+
+# ========================
+# Python
+# ========================
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+venv/
+.venv/
+env/
+*.egg-info/
+dist/
+build/
+
+# ========================
+# Builds / compilados
+# ========================
+dist/
+build/
+out/
+.next/
+.nuxt/
+.svelte-kit/
+
+# ========================
+# Logs
+# ========================
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+logs/
+
+# ========================
+# Testing / cobertura
+# ========================
+coverage/
+.coverage
+*.lcov
+.nyc_output/
+
+# ========================
+# IDEs y editores
+# ========================
+.vscode/
+.idea/
+*.swp
+*.swo
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# ========================
+# Sistema operativo
+# ========================
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ========================
+# Docker
+# ========================
+*.env.docker
+
+# ========================
+# Misc
+# ========================
+*.tsbuildinfo
+.cache/
+.temp/
+.tmp/
+
+# ========================
+# Claude
+# ========================
+.claude/
+CLAUDE.md
+
+
+# ========================
+# docs
+# ========================
+docs/
